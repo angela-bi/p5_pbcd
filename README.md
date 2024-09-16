@@ -25,5 +25,5 @@ type Command = {
 - Make sure Typescript is installed by running `tsc -v` in your terminal.
 
 # To run
-- In `p5_pbcd` run `tsc` - This compiles the typescript file into `logic.js` in the `dist` folder.
-- Then run `node dist/logic.js` - This should result in an output
+- In `src` run `tsc logic.ts --watch` - This will make all saved changes compiled automatically into js.
+- Then, in `tests` run `npm test` - This will run `logic.test.ts` which uses jest to check all unit tests.

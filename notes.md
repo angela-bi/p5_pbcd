@@ -14,3 +14,10 @@
     // } 
     // return null
 ```
+
+## 9/13/24
+- create tests
+- create script to run checks
+- show output in different situations
+- make a sample slide for basic p5 program
+- apple program - list of valid commands at each line with arrow for insert direction
