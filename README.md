@@ -1,29 +1,46 @@
-# Overview/Goal
-The goal of this repo is to outline basic logic that might be needed when considering which commands to provide to a user when they hover over a given command in `p5.js`.
-A sample interaction could be: 
-- A user hovers over the `circle` function in p5. 
-- A popup menu provides the options to add a `circle` call below or a `fill` call above the hovered function.
-In this example, `circle` is our `hoverCommand`. In our backend, we will have a list of commands, each of which will be considered as a `validCommand` -- whether or not to suggest it as a valid command, and which direction to insert it. 
+# Getting Started with Create React App
 
-For now, each command, including `hoverCommand`s and `validCommand`s have the following structure:
-```
-type Command = {
-    name: CommandName
-	valid: CommandName[]
-	invalid: CommandName[]
-	default_valid: Boolean
-    kind: "Modifier" | "Constructor" | "ClosingModifier"
-    direction: InsertDirection | null 
-}
-```
-- `default_valid` is relevant for `validCommand`s. It is true (by default it is a valid command) or false (by default it is *not* a valid command).
-- `valid` is relevant for `validCommand`s where `default_valid` is `false`.
-- `invalid` is relevant for `validCommand`s where `default_valid` is `true`.
-- `direction` is "Above", "Below" or null. We return null when there is no valid direction that validCommand can be inserted in, or when  commands are not relevant to consider as validCommands e.g. when deciding if beginShape is a valid command; we assume that the user has used beginShape and endShape in proper pairs. Essentially, null = "it doesn't make sense to offer this validCommand as an option to the user"
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-# Requirements
-- Make sure Typescript is installed by running `tsc -v` in your terminal.
+## Available Scripts
 
-# To run
-- In `src` run `tsc logic.ts --watch` - This will make all saved changes compiled automatically into js.
-- Then, in `tests` run `npm test` - This will run `logic.test.ts` which uses jest to check all unit tests.
+In the project directory, you can run:
+
+### `npm start`
+
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+The page will reload if you make edits.\
+You will also see any lint errors in the console.
+
+### `npm test`
+
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+
+### `npm run build`
+
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
+
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+
+### `npm run eject`
+
+**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+
+If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+
+You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+
+## Learn More
+
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+
+To learn React, check out the [React documentation](https://reactjs.org/).
