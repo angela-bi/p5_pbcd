@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import './App.css';
+import { ViewUpdate } from '@codemirror/view';
 import { Sketch } from './components/Sketch';
 import { Editor } from './components/Editor';
+import { Button } from './components/Button';
+import widget from '../lib/widget';
 
 function App() {
 
@@ -16,10 +19,15 @@ function App() {
     }
   `);
 
+  const onChange = React.useCallback((code: string, viewUpdate: ViewUpdate) => {
+    setCode(code);
+  }, []);
+
   return (
     <div className="App">
       <div>
-        <Editor code={code} setCode={setCode}></Editor>
+        <Button code={code} setCode={setCode} onChange={onChange}></Button>
+        <Editor code={code} onChange={onChange}></Editor>
         <Sketch code={code}></Sketch>
       </div>
     </div>

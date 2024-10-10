@@ -4,13 +4,10 @@ import { ViewUpdate } from '@codemirror/view';
 
 interface EditorProps {
   code: string;
-  setCode: (newCode: string) => void;
+  onChange: (code: string, viewUpdate: ViewUpdate) => void;
 }
 
-export const Editor: React.FC<EditorProps> = ({code, setCode}) => {
-  const onChange = React.useCallback((code: string, viewUpdate: ViewUpdate) => {
-    setCode(code);
-  }, []);
+export const Editor: React.FC<EditorProps> = ({code, onChange}) => {
 
   return (
     <div>
