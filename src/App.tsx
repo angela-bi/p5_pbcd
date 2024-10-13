@@ -4,7 +4,6 @@ import { ViewUpdate } from '@codemirror/view';
 import { Sketch } from './components/Sketch';
 import { Editor } from './components/Editor';
 import { Button } from './components/Button';
-import widget from '../lib/widget';
 
 function App() {
 
