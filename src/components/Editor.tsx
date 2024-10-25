@@ -7,11 +7,12 @@ import { EditorState } from "@codemirror/state";
 // import { basicSetup } from '@codemirror/basic-setup';
 
 interface EditorProps {
-  code: string;
-  onChange: (code: string, viewUpdate: ViewUpdate) => void;
+  editorCode: string;
+  sketchCode: string;
+  setEditorCode: (newCode: string) => void;
 }
 
-export const Editor: React.FC<EditorProps> = ({ code, onChange }) => {
+export const Editor: React.FC<EditorProps> = ({ editorCode, setEditorCode }) => {
   // Function to generate cursor tooltips
   function getCursorTooltips(state: EditorState): readonly Tooltip[] {
     return state.selection.ranges
@@ -32,7 +33,9 @@ export const Editor: React.FC<EditorProps> = ({ code, onChange }) => {
           create: () => {
             let dom = document.createElement("div");
             dom.className = "cm-tooltip-cursor";
-            dom.textContent = text.slice(start - from, end - from);
+            //console.log(text) // this is the line!
+            //console.log(from, to)
+            dom.textContent = text.slice(start - from, end - from); // this is the specific part a user is hovering over - individual args
             return { dom };
           }
         };
@@ -51,6 +54,12 @@ export const Editor: React.FC<EditorProps> = ({ code, onChange }) => {
     provide: f => showTooltip.computeN([f], state => state.field(f))
   });
 
+  const handleEditorChange = (viewUpdate: ViewUpdate) => {
+    const currentText = viewUpdate.state.doc.toString(); // Get the current content of the editor
+    setEditorCode(currentText)
+    console.log('Current text in editor:', currentText);
+  };
+
   // Define the extensions including the cursor tooltip field
   const extensions = [
     // basicSetup, // Provides basic editor features like line numbers, history, etc.
@@ -60,10 +69,10 @@ export const Editor: React.FC<EditorProps> = ({ code, onChange }) => {
   return (
     <div>
       <CodeMirror
-        value={code}
+        value={editorCode}
         height="300px"
-        extensions={extensions} // Attach extensions to the CodeMirror component
-        onChange={onChange}
+        extensions={extensions}
+        onUpdate={handleEditorChange}
       />
     </div>
   );
