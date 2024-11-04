@@ -1,44 +1,41 @@
 import React from 'react';
-import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom'
+import { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
 
 interface SketchProps {
   sketchCode: string;
   editorCode: string;
-  //(code: string, viewUpdate: ViewUpdate) => void
-  startSketch: (sketchCode:string, editorCode:string, dom: Document ) => void;
+  startSketch: (sketchCode: string, editorCode: string, dom: Document) => void;
 }
 
 declare global {
   interface Window {
-    startSketch: (sketch: string, baseURL: string ) => void;
+    startSketch: (sketch: string, baseURL: string) => void;
     p5: (sketch?: Function, node?: HTMLElement, sync?: boolean) => void;
   }
 }
 
-export const Sketch: React.FC<SketchProps> = ({sketchCode, editorCode, startSketch}) => {
+export const Sketch = forwardRef<HTMLIFrameElement, SketchProps>(
+  ({ sketchCode, editorCode, startSketch }, ref) => {
+    const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  const [contentRef, setContentRef] = useState<HTMLIFrameElement | null>(null);
-  const mountNode = contentRef?.contentWindow?.document?.body
-  const iframeRef = useRef<HTMLIFrameElement | null>(null); // iframeRef helps attach the iframe rendered to the reference
+    // Use useImperativeHandle to expose iframeRef to the parent
+    useImperativeHandle(ref, () => iframeRef.current as HTMLIFrameElement);
+
 
   useEffect(() => {
-    console.log('sketchCode changed')
+    const iframeDoc = iframeRef.current?.contentWindow?.document;
 
-    const iframeDoc = iframeRef.current?.contentWindow?.document; // this is referring to the iframe rendered
-    console.log("iframedoc", iframeDoc)
-    
-    if (iframeDoc) {
-      console.log('iframe.contentwindow.document', iframeDoc)
+    // if  existing iframe document, clear its body before re-rendering
+    if (iframeRef && iframeDoc) {
+      // iframeRef.current?.contentWindow?.location.reload()
+
       startSketch(sketchCode, editorCode, iframeDoc);
     }
-  }, []);
+  }, [sketchCode]);
 
   return (
     <div>
-      <iframe ref={iframeRef} style={{height:'400px', width:'400px'}}>
-        {mountNode && createPortal(sketchCode, mountNode)}
-      </iframe>
+      <iframe ref={iframeRef} style={{ height: '400px', width: '400px' }} />
     </div>
   );
-}
+});
