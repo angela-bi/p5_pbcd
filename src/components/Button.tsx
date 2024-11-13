@@ -7,18 +7,19 @@ interface ButtonProps {
     sketchCode: string;
     editorCode: string;
     setSketchCode: (newCode: string) => void;
-    startSketch: (sketchCode:string, editorCode:string, dom: Document ) => void;
+    startSketch: (iframeRef: React.MutableRefObject<HTMLIFrameElement | null>, code: string, cb?: () => void) => void;
+    iframeRef: React.MutableRefObject<HTMLIFrameElement | null>;
   }
 
-export const Button: React.FC<ButtonProps> = ({ sketchCode, editorCode, setSketchCode, startSketch}) => {
+export const Button: React.FC<ButtonProps> = ({ sketchCode, editorCode, setSketchCode, startSketch, iframeRef}) => {
   return (
     <div>
         <IconButton aria-label="play" onClick={() => {
-            // setSketchCode(editorCode)
-            const iframeDoc = document.querySelector('iframe')?.contentWindow?.document; // Get the iframe document
-                if (iframeDoc) {
-                    startSketch(sketchCode, editorCode, iframeDoc); // Call startSketch with code and iframe document
-                }
+          // ref = document.querySelector('iframe')?.contentWindow?.document;
+          if (iframeRef.current) {
+            setSketchCode(editorCode);
+            startSketch(iframeRef, editorCode); // Call `startSketch` with the iframe ref and code
+          }
         }}>
         <PlayArrowIcon/>
         </IconButton>

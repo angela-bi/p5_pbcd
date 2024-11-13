@@ -4,14 +4,7 @@ import { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
 interface SketchProps {
   sketchCode: string;
   editorCode: string;
-  startSketch: (sketchCode: string, editorCode: string, dom: Document) => void;
-}
-
-declare global {
-  interface Window {
-    startSketch: (sketch: string, baseURL: string) => void;
-    p5: (sketch?: Function, node?: HTMLElement, sync?: boolean) => void;
-  }
+  startSketch: (iframeRef: React.MutableRefObject<HTMLIFrameElement | null>, code: string, cb?: () => void) => void;
 }
 
 export const Sketch = forwardRef<HTMLIFrameElement, SketchProps>(
@@ -23,15 +16,14 @@ export const Sketch = forwardRef<HTMLIFrameElement, SketchProps>(
 
 
   useEffect(() => {
-    const iframeDoc = iframeRef.current?.contentWindow?.document;
 
     // if  existing iframe document, clear its body before re-rendering
-    if (iframeRef && iframeDoc) {
+    if (iframeRef) {
       // iframeRef.current?.contentWindow?.location.reload()
 
-      startSketch(sketchCode, editorCode, iframeDoc);
+      startSketch(iframeRef, editorCode);
     }
-  }, [sketchCode]);
+  }, []);
 
   return (
     <div>
