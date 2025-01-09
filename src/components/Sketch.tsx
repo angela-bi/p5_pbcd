@@ -1,33 +1,21 @@
 import React from 'react';
 import { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
+import { StateObject } from '../App';
 
 interface SketchProps {
-  sketchCode: string;
-  editorCode: string;
-  startSketch: (iframeRef: React.MutableRefObject<HTMLIFrameElement | null>, code: string, cb?: () => void) => void;
+  state: StateObject
+  code: string;
+  startSketch: (ref: StateObject, code: string) => void;
 }
 
 export const Sketch = forwardRef<HTMLIFrameElement, SketchProps>(
-  ({ sketchCode, editorCode, startSketch }, ref) => {
-    const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  ({state, code, startSketch}, ref) => {
 
-    // Use useImperativeHandle to expose iframeRef to the parent
-    useImperativeHandle(ref, () => iframeRef.current as HTMLIFrameElement);
-
-
-  useEffect(() => {
-
-    // if  existing iframe document, clear its body before re-rendering
-    if (iframeRef) {
-      // iframeRef.current?.contentWindow?.location.reload()
-
-      startSketch(iframeRef, editorCode);
-    }
-  }, []);
+  startSketch(state, code)
 
   return (
-    <div>
-      <iframe ref={iframeRef} style={{ height: '400px', width: '400px' }} />
+    <div style={{ height: '300px', width: '300px', padding: 0, margin: 0, border: 'none', position: 'relative' }}>
+      <iframe ref={state.iframeRef} style={{ width: '100%', height: '100%', border: 'none', padding: 0, margin: 0 }} />
     </div>
   );
 });
