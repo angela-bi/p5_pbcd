@@ -5,7 +5,7 @@ import { StateObject } from '../App';
 interface SketchProps {
   state: StateObject
   code: string;
-  startSketch: (ref: StateObject, code: string) => void;
+  startSketch: (state: StateObject, code: string) => StateObject
 }
 
 export const Sketch = forwardRef<HTMLIFrameElement, SketchProps>(

@@ -6,12 +6,14 @@ import { Button } from './components/Button';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import { useEffect } from 'react';
+import { Typography } from '@mui/material';
 
 export interface StateObject {
   iframeRef: React.RefObject<HTMLIFrameElement>;
   sketchCode: string;
   currentEditorCode?: string;
   p5_appended: boolean;
+  addedFunction?: string;
 }
 
 function App() {
@@ -32,18 +34,16 @@ function App() {
   
   const startSketch = (state: StateObject, code: string): StateObject => {
     const iframe = state.iframeRef.current
-    console.log('line 34 state', state)
+    //console.log('line 34 state', state)
 
     if (iframe) {
       // if p5 appended, remove it
       if (state.p5_appended == true) {
-        console.log('line 39 p5_appended, removing p5 script', state.p5_appended)
         for (let i = 0; i < iframe.contentDocument!.scripts.length; i++) {
           if (iframe.contentDocument!.scripts[i].id === 'p5-script') {
             iframe.contentDocument!.scripts[i].remove()
           }
         }
-        console.log('iframe.contentDocument.scripts', iframe.contentDocument!.scripts)
       }
       // add updated script, no matter if p5_appended is true or false
       const url = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js';
@@ -58,7 +58,6 @@ function App() {
 
       // if existing sketch script, remove
       if (state.sketchCode) {
-        console.log('removing sketch script')
         for (let i = 0; i < iframe.contentDocument!.scripts.length; i++) {
           if (iframe.contentDocument!.scripts[i].id === 'sketch-script') {
             iframe.contentDocument!.scripts[i].remove()
@@ -89,21 +88,21 @@ function draw() {
       sketchCode: sketchCode,
       p5_appended: false,
       sketch_appended: false,
+      addedFunction: ''
     }));
   
     setStateArray(initialArray);
   }, [numberOfSketches]);
   
   useEffect(() => {
+    console.log('useEffect ran')
     stateArray.forEach((state, index) => {
       let newState = startSketch(state, state.sketchCode)
       state = newState
-      console.log('line 96 state', state)
     });
   }, [stateArray]);
   
   const firstState = stateArray[0]
-  console.log(stateArray)
 
   const [currentEditorCode, setCurrentEditorCode] = useState(`function setup() {
   createCanvas(300, 300);
@@ -133,6 +132,7 @@ function draw() {
               code={firstState.sketchCode}
               refs={stateArray}
               setCurrentEditorCode={setCurrentEditorCode}
+              updateState={updateStateProperty}
               />
             )}
           </Grid>
@@ -145,6 +145,7 @@ function draw() {
                     code={state.sketchCode}
                     startSketch={startSketch}
                   />
+                  <Typography>{state.addedFunction}</Typography>
                 </Grid>
               ))}
             </Grid>

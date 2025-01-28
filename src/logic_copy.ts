@@ -1,4 +1,4 @@
-export type ConstructorNames = "circle" | "vertex" | "fillPair" | "shapePair"
+export type ConstructorNames = "ellipse" | "circle" | "vertex" | "fillPair" | "shapePair"
 export type ModifierNames = "fill" | "beginShape"
 export type CommandName = ConstructorNames | ModifierNames
 export type InsertDirection = "Above" | "Below"
@@ -10,6 +10,7 @@ export type Command = {
 	default_valid: Boolean
     kind: "Modifier" | "Constructor" | "ClosingModifier"
     direction: InsertDirection | null 
+    num_params: number
 }
 
 export function checkValidity( hoverCommand: Command, validCommand: Command): InsertDirection | null {
@@ -25,6 +26,6 @@ export function checkValidity( hoverCommand: Command, validCommand: Command): In
     }
 }
 
-export default function checkCommands( hoverCommand: Command, commands: Command[]) {
+export function checkCommands( hoverCommand: Command, commands: Command[]) {
     return commands.map(command => checkValidity(hoverCommand, command))
 }
