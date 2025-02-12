@@ -9,7 +9,7 @@ import * as parser from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
 import { StateObject } from "../App";
-import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands } from '../logic_copy'
+import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../logic_copy'
 import perturb_params from '../perturb_params';
 
 const circle = {name: "circle", valid: [], invalid: ["vertex"], default_valid: true, kind: "Constructor", direction: "Below", num_params: 3} as Command
@@ -24,9 +24,11 @@ interface EditorProps {
   refs: StateObject[];
   setCurrentEditorCode: React.Dispatch<React.SetStateAction<string>>;
   updateState: <K extends keyof StateObject>(index: number, key: K, value: StateObject[K]) => void
+  userClicked: boolean;
+  setUserClicked: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurrentEditorCode, updateState }) => {
+export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurrentEditorCode, updateState, setUserClicked }) => {
   let commands = [circle, ellipse, fill, beginShape, vertex]
 
   // generate cursor tooltips
@@ -74,7 +76,7 @@ export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurr
   };
 
   const params = [t.expressionStatement(t.identifier('mouseX')), t.expressionStatement(t.identifier('mouseY'))]
-  function perturbParam(expression: t.ExpressionStatement, editorCode: string, curr_pos: number) {
+  function perturbParam(editorCode: string, curr_pos: number) {
     let output = '';
     const ast = parser.parse(editorCode);
       
@@ -84,14 +86,27 @@ export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurr
         let currentPath = path
         // locate node that is clicked
         if (node.start && node.end && node.start <= curr_pos && node.end >= curr_pos) {
-          //console.log('found node: ', node.start, node.end)
           if (path.node.type == 'NumericLiteral' || path.node.type == 'Identifier') {
             while (currentPath.parentPath && currentPath.parentPath.type !== 'CallExpression') {
               currentPath = currentPath.parentPath;
             }
-            const argNode = currentPath.node
-            if (argNode.type == 'NumericLiteral'){ // for now, change later
-              currentPath.replaceWith(expression)
+            currentPath = currentPath.parentPath!;
+            console.log('currentPath:', currentPath)
+            if ( t.isCallExpression(currentPath.node) && currentPath.node.arguments.every((node) => t.isNode(node))) {
+              console.log("currentPath:", currentPath);
+    
+              // Modify function arguments safely
+              let newArgs = currentPath.node.arguments.map(() =>
+                t.identifier('mouseX') // hard coded, replace later
+              );
+    
+    
+              // Replace the function arguments directly
+              currentPath.replaceWith(
+                t.callExpression(currentPath.node.callee, newArgs)
+              );
+
+              console.log('currentPath after change: ', currentPath)
             }
           }
         }
@@ -102,18 +117,12 @@ export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurr
     return output
   }
 
-  function createCommand(functionName: string) {
-    for (var c of commands) {
-      if (c.name == functionName) {
-        return c
-      }
-    }
-  }
-
   function perturbFunc(editorCode: string, curr_pos: number) {
     let possible_code = [] as string[];
     let added_funcs = [] as string[];
     const ast = parser.parse(editorCode);
+    console.log('editorCode: ', editorCode)
+    console.log('ast: ', ast)
   
     traverse(ast, {
       enter(path) {
@@ -132,7 +141,7 @@ export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurr
               funcNode.type === 'CallExpression' &&
               funcNode.callee.type === 'Identifier'
             ) {
-              const func = createCommand(funcNode.callee.name);
+              const func = createCommand(funcNode.callee.name, commands);
               if (func && currentPath.parentPath) {
                 const insertDirections = checkCommands(func, commands);
   
@@ -159,8 +168,6 @@ export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurr
                           } else if (insertDirections[i] === 'Below' && clonedParentPath) {
                             clonedParentPath.insertAfter(callExpression);
                           }
-
-                          console.log(callExpression)
                           added_funcs.push(generate(callExpression).code)
                         }
                       },
@@ -181,18 +188,18 @@ export const Editor: React.FC<EditorProps> = ({ startSketch, code, refs, setCurr
   }
 
   const handleClickEvent = (view: EditorView, pos: number, event: MouseEvent) => {
+    setUserClicked(true);
     const state = view.state;
     const doc = state.doc;
     const curr_pos = pos; // the position our mouse clicked
-    //console.log('new click event called')
 
     try {
       let possible_code = null;
       let added_funcs = null;
       ({ possible_code, added_funcs } = perturbFunc(code, curr_pos));
+      console.log(perturbParam(code, curr_pos))
       
       for (let i = 1; i < refs.length; i++) {
-        console.log(possible_code[i])
         try {
           updateState(i, "sketchCode", possible_code[i]);
           updateState(i, "addedFunction", added_funcs[i])

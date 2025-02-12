@@ -29,3 +29,11 @@ export function checkValidity( hoverCommand: Command, validCommand: Command): In
 export function checkCommands( hoverCommand: Command, commands: Command[]) {
     return commands.map(command => checkValidity(hoverCommand, command))
 }
+
+export function createCommand(functionName: string, commands: Command[]) {
+    for (var c of commands) {
+      if (c.name == functionName) {
+        return c
+      }
+    }
+  }
