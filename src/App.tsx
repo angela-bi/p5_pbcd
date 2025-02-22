@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import { useEffect } from 'react';
 import { Stack, Typography } from '@mui/material';
+import SketchRow from './components/SketchRow';
 
 export interface StateObject {
   iframeRef: React.RefObject<HTMLIFrameElement>;
@@ -14,14 +15,16 @@ export interface StateObject {
   currentEditorCode?: string;
   p5_appended: boolean;
   addedFunction?: string;
+  isMain: boolean;
+  // id: number; this would be used to distinguish between functions of the same type
 }
 
 function App() {
-  let numberOfSketches = 4
   // number of sketches per row should be the number of parameters in a function
   // when user first enters page, there should only be one sketch
   const [stateArray, setStateArray] = useState<StateObject[]>([]);
   const [userClicked, setUserClicked] = useState<boolean>(false);
+  const [numSketches, setNumSketches] = useState<number[]>([]);
 
   const updateStateProperty = <K extends keyof StateObject>(
     index: number,
@@ -37,7 +40,6 @@ function App() {
   
   const startSketch = (state: StateObject, code: string): StateObject => {
     const iframe = state.iframeRef.current
-    //console.log('line 34 state', state)
 
     if (iframe) {
       // if p5 appended, remove it
@@ -75,27 +77,27 @@ function App() {
     return state; // so that later we can update this object in array
   }
 
-  useEffect(() => {
-    const sketchCode = `function setup() {
+  const defaultSketchCode = `function setup() {
   createCanvas(300, 300);
-  background(220);
 }
-
 function draw() {
+  background(220);
   ellipse(50, 50, 50, 50);
-}
-`;
-  
-    const initialArray = Array.from({ length: numberOfSketches }, () => ({
-      iframeRef: React.createRef<HTMLIFrameElement>(),
-      sketchCode: sketchCode,
-      p5_appended: false,
-      sketch_appended: false,
-      addedFunction: ''
-    }));
-  
-    setStateArray(initialArray);
-  }, [numberOfSketches]);
+}`;
+
+  useEffect(() => {  
+    setStateArray((prevState) => {
+      const newStateArray = Array.from({ length: 11 }, (_, index) => ({
+        iframeRef: prevState[index]?.iframeRef || React.createRef<HTMLIFrameElement>(),
+        sketchCode: prevState[index]?.sketchCode || defaultSketchCode,
+        p5_appended: false,
+        addedFunction: prevState[index]?.addedFunction || "",
+        isMain: index === 0 ? true : false
+      }));
+
+      return newStateArray;
+    });
+  }, []);
   
   useEffect(() => {
     stateArray.forEach((state, index) => {
@@ -118,58 +120,54 @@ function draw() {
 
   return (
     <div className="App">
-      <Box sx={{ flexGrow: 1 }}>
+      <Box>
         <Grid container spacing={2}>
             {firstState && (
-              <Grid size={4}>
+              <Grid size={3}>
                 <Button
                 code={firstState.sketchCode}
                 currentEditorCode={currentEditorCode}
                 updateState={updateStateProperty}
                 />
                 <Editor
-                startSketch={startSketch}
                 code={firstState.sketchCode}
-                refs={stateArray}
                 setCurrentEditorCode={setCurrentEditorCode}
                 updateState={updateStateProperty}
                 userClicked={userClicked}
                 setUserClicked={setUserClicked}
+                setNumSketches={setNumSketches}
                 />
                 <div>
                   {stateArray.map((state, index) => {
                   if (index === 0) {
                     return (
                     <Sketch
-                      firstState={firstState}
                       stateArray={stateArray}
                       state={state}
                       code={state.sketchCode}
-                      startSketch={startSketch}
                       updateState={updateStateProperty}
+                      setNumSketches={setNumSketches}
                     />)
                   }
                   })}
                 </div>
               </Grid>
             )}
-          <Grid size={8}>
-            <Grid container spacing={2}>
-              {userClicked && stateArray.map((state, index) => {
-                if (index !== 0) {
-                  return <Stack key={index}>
-                  <Sketch
-                    firstState={firstState}
-                    state={state}
-                    code={state.sketchCode}
-                    startSketch={startSketch}
-                    updateState={updateStateProperty}
-                    stateArray={stateArray}
-                  />
-                </Stack>
-                }
-              })}
-            </Grid>
+          <Grid size={9}>
+            <div style={{ maxHeight: "100vh", overflowY: "auto" }}>
+              {userClicked && 
+                numSketches.map((num, index) => ( // where num is the number of sketches per row and index is the ith row
+                  <Stack key={index}>
+                    <SketchRow
+                      updateState={updateStateProperty}
+                      stateArray={stateArray}
+                      numSketches={numSketches}
+                      setNumSketches={setNumSketches}
+                      index={index}
+                    />
+                  </Stack>
+              ))}
+            </div>
           </Grid>
         </Grid>
       </Box>

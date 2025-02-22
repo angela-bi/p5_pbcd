@@ -5,7 +5,8 @@ import * as parser from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
 import { Stack, Button } from '@mui/material';
-import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../logic_copy'
+import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../utils/check_commands'
+import { perturbFunc } from '../utils/perturb';
 
 const circle = {name: "circle", valid: [], invalid: ["vertex"], default_valid: true, kind: "Constructor", direction: "Below", num_params: 3} as Command
 const ellipse = {name: "ellipse", valid: [], invalid: ["vertex"], default_valid: true, kind: "Constructor", direction: "Below", num_params: 4} as Command // it can have 3 or 4
@@ -14,15 +15,14 @@ const beginShape = {name: "beginShape", valid: [], invalid: ["vertex", "beginSha
 const vertex = {name: "vertex", valid: ["vertex"], invalid: [], default_valid: false, kind: "Constructor", direction: "Below", num_params: 0} as Command
 
 interface SketchProps {
-  firstState: StateObject;
-  state: StateObject
+  state: StateObject;
   code: string;
-  startSketch: (state: StateObject, code: string) => StateObject
-  updateState: <K extends keyof StateObject>(index: number, key: K, value: StateObject[K]) => void
-  stateArray: StateObject[]
+  updateState: <K extends keyof StateObject>(index: number, key: K, value: StateObject[K]) => void;
+  stateArray: StateObject[];
+  setNumSketches: React.Dispatch<React.SetStateAction<number[]>>
 }
 
-export const Sketch: React.FC<SketchProps> = ({firstState, state, code, startSketch, updateState, stateArray }) => {
+export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateArray, setNumSketches }) => {
   let commands = [circle, ellipse, fill, beginShape, vertex]
   
   const handleClick = () => { // find out how to log what was clicked
@@ -32,78 +32,35 @@ export const Sketch: React.FC<SketchProps> = ({firstState, state, code, startSke
     } catch (e) {
       console.error('couldnt update state', e)
     }
-    console.log('state.addedFunction', state.addedFunction)
-    let func_ast = parser.parse(state.addedFunction!)
-    let added_funcs = [] as string[];
-    let possible_code = [] as string[];
-    traverse(func_ast, {
-      enter(path) {
-        const { node } = path;
-        let currentPath = path;
-        if (path.node.type === 'Identifier') {
-          const func_command = createCommand(path.node.name, commands)
-          const insertDirections = checkCommands(func_command!, commands);
 
-          for (let i = 0; i < insertDirections.length; i++) {
-            if (insertDirections[i] !== null) {
-              const code_ast = parser.parse(state.sketchCode);
+    const { possibleCodes, addedFuncs } = perturbFunc(code, null, commands, state);
+    const numSketches = addedFuncs.map((x) => x.length);
+    setNumSketches(numSketches);
 
-              const clonedPath = traverse(code_ast, {
-                enter(clonedPath) {
-                  // have logic about finding where the code just inserted is
-                  if (clonedPath.node.type === 'Identifier' && path.node.type === 'Identifier' && clonedPath.node.name === path.node.name) {
-                    clonedPath.stop()
-
-                    const callee = t.identifier(commands[i].name);
-                    const params = [] as t.Expression[];
-                    for (let j = 0; j < commands[i].num_params; j++) {
-                      params.push(t.numericLiteral(100)) // for now, hard coded
-                    }                          
-                    const callExpression = t.callExpression(callee, params);
-                    const callStatement = t.expressionStatement(callExpression);
-
-                    let blockPath = clonedPath.findParent((p) => p.isBlockStatement());
-                    if (blockPath && blockPath.isBlockStatement()) {
-                      if (insertDirections[i] === "Above") {
-                        blockPath.unshiftContainer("body", callStatement);
-                      } else if (insertDirections[i] === "Below") {
-                        blockPath.pushContainer("body", callStatement);
-                      }
-                    }
-                    added_funcs.push(generate(callStatement).code)
-                  }
-                },
-              })
-              const output = generate(code_ast, {}, state.sketchCode).code;
-              console.log('output, should have '+ commands[i].name + ' added: ', output)
-              possible_code.push(output);
-            }
-          }
-          // need logic for changing the first item of the array
-          // need command and direction, from previous? can make it a stack? [{addedFunc, insertDirection}]
-          console.log('first state sketchcode: ', stateArray[0].sketchCode)
-          console.log('what we want to update it to: ', state.sketchCode)
-          updateState(0, "sketchCode", state.sketchCode);
-          console.log('first state updated')
-          
-          for (let i = 1; i < stateArray.length; i++) {
-            try {
-              updateState(i, "addedFunction", added_funcs[i])
-              updateState(i, "sketchCode", possible_code[i]);
-            } catch (e) {
-              console.error("Error parsing the code:", e)
-            }
-          }
-          console.log(stateArray)
-        }
+    let counter = 0
+    for (let i = 0; i < possibleCodes.length; i++) {
+      for (let j = 0; j < possibleCodes[i].length; j++) {
+        updateState(counter+1, "sketchCode", possibleCodes[i][j])
+        updateState(counter+1, "addedFunction", addedFuncs[i][j])
+        counter += 1
       }
-    });
+    }
   };  
 
   return (
-    <div style={{ height: '300px', width: '300px', padding: 0, margin: 0, border: 'none', position: 'relative' }}>
-      <iframe ref={state.iframeRef} style={{ width: '100%', height: '100%', border: 'none', padding: 0, margin: 0}} title={state.addedFunction}/>
-      <Button color="inherit" style={{textTransform: 'none'}} onClick={handleClick}>{state.addedFunction}</Button>
+    <div style={{height:'340px', overflow: 'clip'}}>
+      {(state.isMain || state.addedFunction) && 
+      <div style={{ display: 'flex', width: 'fit-content', height: 'fit-content', overflow: 'hidden' }}>
+        <Stack>
+          <iframe 
+            ref={state.iframeRef} 
+            style={{ width: '320px', height: '320px', border: 'none' }} 
+            title={state.addedFunction} 
+          />
+          <Button color="inherit" size='small' style={{textTransform: 'none', marginTop: -10}} onClick={handleClick}>{state.addedFunction}</Button>
+        </Stack>
+      </div>
+      }
     </div>
   );
 };
