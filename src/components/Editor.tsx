@@ -4,19 +4,8 @@ import { Decoration, DecorationSet, ViewUpdate } from '@codemirror/view';
 import { Tooltip, showTooltip, EditorView } from "@codemirror/view";
 import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
 import { EditorState } from "@codemirror/state";
-import * as t from "@babel/types";
-import * as parser from '@babel/parser';
-import traverse, { NodePath } from '@babel/traverse';
-import generate from "@babel/generator";
 import { StateObject } from "../App";
-import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../utils/check_commands'
 import { perturbFunc } from '../utils/perturb';
-
-const circle = {name: "circle", valid: [], invalid: ["vertex"], default_valid: true, kind: "Constructor", direction: "Below", num_params: 3} as Command
-const ellipse = {name: "ellipse", valid: [], invalid: ["vertex"], default_valid: true, kind: "Constructor", direction: "Below", num_params: 4} as Command // it can have 3 or 4
-const fill = {name: "fill", valid: ["circle", "ellipse"], invalid: [], default_valid: false, kind: "Modifier", direction: "Above", num_params: 3} as Command
-const beginShape = {name: "beginShape", valid: [], invalid: ["vertex", "beginShape"], default_valid: true, kind: "Constructor", direction: "Below", num_params: 0} as Command // since it's only a hoverCommand
-const vertex = {name: "vertex", valid: ["vertex"], invalid: [], default_valid: false, kind: "Constructor", direction: "Below", num_params: 0} as Command
 
 interface EditorProps {
   code: string;
@@ -25,10 +14,10 @@ interface EditorProps {
   userClicked: boolean;
   setUserClicked: React.Dispatch<React.SetStateAction<boolean>>
   setNumSketches: React.Dispatch<React.SetStateAction<number[]>>
+  setLastInserted: React.Dispatch<React.SetStateAction<number>>
 }
 
-export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, updateState, setUserClicked, setNumSketches }) => {
-  let commands = [circle, ellipse, fill, beginShape, vertex]
+export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, updateState, setUserClicked, setNumSketches, setLastInserted }) => {
 
   // generate cursor tooltips
   function getCursorTooltips(state: EditorState): readonly Tooltip[] {
@@ -57,6 +46,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       });
   }
 
+  // for tooltip functionality - not currently
   const cursorTooltipField = StateField.define<readonly Tooltip[]>({
     create: getCursorTooltips,
 
@@ -96,7 +86,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
   });
 
   const highlightMark = Decoration.mark({
-    attributes: { style: "background-color: rgba(255, 255, 0, 0.5);" }
+    attributes: { style: "background-color: rgba(135,206,250, 0.5);" }
   });
   const handleEditorChange = (viewUpdate: ViewUpdate) => {
     const currentText = viewUpdate.state.doc.toString();
@@ -126,8 +116,20 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     const doc = state.doc;
     const curr_pos = pos; // the position our mouse clicked
 
+    if (pos !== null) {
+      const { from, to, text } = view.state.doc.lineAt(pos);
+      let start = pos, end = pos;
+
+      while (start > from && /\w/.test(text[start - from - 1])) start--;
+      while (end < to && /\w/.test(text[end - from])) end++;
+
+      view.dispatch({
+        effects: highlightEffect.of({ from: start, to: end })
+      });
+    }
+
     try {
-      const { possibleCodes, addedFuncs } = perturbFunc(code, curr_pos, commands, undefined);
+      const { possibleCodes, addedFuncs } = perturbFunc(code, curr_pos, undefined);
       console.log(addedFuncs)
       const numSketches = addedFuncs.filter(x => x.length > 0).map(x => x.length);
       setNumSketches(numSketches);

@@ -15,7 +15,7 @@ export interface StateObject {
   currentEditorCode?: string;
   p5_appended: boolean;
   addedFunction?: string;
-  isMain: boolean;
+  displayName: boolean;
   // id: number; this would be used to distinguish between functions of the same type
 }
 
@@ -25,6 +25,7 @@ function App() {
   const [stateArray, setStateArray] = useState<StateObject[]>([]);
   const [userClicked, setUserClicked] = useState<boolean>(false);
   const [numSketches, setNumSketches] = useState<number[]>([]);
+  const [lastInserted, setLastInserted] = useState<number>(0);
 
   const updateStateProperty = <K extends keyof StateObject>(
     index: number,
@@ -36,46 +37,38 @@ function App() {
         i === index ? { ...state, [key]: value } : state
       )
     );
+    setStateArray((prevArray) => [...prevArray]); // to ensure update
   };  
   
-  const startSketch = (state: StateObject, code: string): StateObject => {
-    const iframe = state.iframeRef.current
-
+  const startSketch = (index: number, code: string): void => {
+    const state = stateArray[index];
+    const iframe = state?.iframeRef?.current;
+  
     if (iframe) {
-      // if p5 appended, remove it
-      if (state.p5_appended == true) {
-        for (let i = 0; i < iframe.contentDocument!.scripts.length; i++) {
-          if (iframe.contentDocument!.scripts[i].id === 'p5-script') {
-            iframe.contentDocument!.scripts[i].remove()
-          }
-        }
+      const doc = iframe.contentDocument;
+      if (!doc) return;
+        if (!doc.getElementById("p5-script")) {
+        const url = "https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js";
+        let script = document.createElement("script");
+        script.onerror = () => console.log("Failed to load script: " + url);
+        script.setAttribute("src", url);
+        script.id = "p5-script";
+        doc.body.appendChild(script);
+  
+        setStateArray((prevArray) =>
+          prevArray.map((s, i) => (i === index ? { ...s, p5_appended: true } : s))
+        );
       }
-      // add updated script, no matter if p5_appended is true or false
-      const url = 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js';
-      let script = document.createElement('script');
-      script.onerror = () => {
-        console.log("Failed to load script: " + url);
-      };
-      script.setAttribute('src', url);
-      script.id = "p5-script";
-      iframe.contentDocument!.body.appendChild(script);
-      state.p5_appended = true
-
-      // if existing sketch script, remove
-      if (state.sketchCode) {
-        for (let i = 0; i < iframe.contentDocument!.scripts.length; i++) {
-          if (iframe.contentDocument!.scripts[i].id === 'sketch-script') {
-            iframe.contentDocument!.scripts[i].remove()
-          }
-        }
-      }
-      let newSketchScript = document.createElement('script');
+  
+      const oldSketch = doc.getElementById("sketch-script");
+      if (oldSketch) oldSketch.remove();
+  
+      let newSketchScript = document.createElement("script");
       newSketchScript.textContent = code;
       newSketchScript.id = "sketch-script";
-      iframe.contentDocument!.body.appendChild(newSketchScript);
+      doc.body.appendChild(newSketchScript);
     }
-    return state; // so that later we can update this object in array
-  }
+  };  
 
   const defaultSketchCode = `function setup() {
   createCanvas(300, 300);
@@ -87,12 +80,12 @@ function draw() {
 
   useEffect(() => {  
     setStateArray((prevState) => {
-      const newStateArray = Array.from({ length: 11 }, (_, index) => ({
+      const newStateArray = Array.from({ length: 20 }, (_, index) => ({
         iframeRef: prevState[index]?.iframeRef || React.createRef<HTMLIFrameElement>(),
         sketchCode: prevState[index]?.sketchCode || defaultSketchCode,
         p5_appended: false,
         addedFunction: prevState[index]?.addedFunction || "",
-        isMain: index === 0 ? true : false
+        displayName: index === 0 ? false : true
       }));
 
       return newStateArray;
@@ -101,10 +94,9 @@ function draw() {
   
   useEffect(() => {
     stateArray.forEach((state, index) => {
-      let newState = startSketch(state, state.sketchCode)
-      state = newState
+      if (state.iframeRef.current) startSketch(index, state.sketchCode);
     });
-  }, [stateArray]);
+  }, [JSON.stringify(stateArray.map((state) => state.sketchCode))]);   
   
   const firstState = stateArray[0]
 
@@ -128,6 +120,8 @@ function draw() {
                 code={firstState.sketchCode}
                 currentEditorCode={currentEditorCode}
                 updateState={updateStateProperty}
+                stateArray={stateArray}
+                startSketch={startSketch}
                 />
                 <Editor
                 code={firstState.sketchCode}
@@ -136,6 +130,7 @@ function draw() {
                 userClicked={userClicked}
                 setUserClicked={setUserClicked}
                 setNumSketches={setNumSketches}
+                setLastInserted={setLastInserted}
                 />
                 <div>
                   {stateArray.map((state, index) => {
@@ -147,6 +142,7 @@ function draw() {
                       code={state.sketchCode}
                       updateState={updateStateProperty}
                       setNumSketches={setNumSketches}
+                      setLastInserted={setLastInserted}
                     />)
                   }
                   })}
@@ -164,6 +160,7 @@ function draw() {
                       numSketches={numSketches}
                       setNumSketches={setNumSketches}
                       index={index}
+                      setLastInserted={setLastInserted}
                     />
                   </Stack>
               ))}
