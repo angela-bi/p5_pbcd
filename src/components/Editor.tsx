@@ -1,23 +1,25 @@
 
 import CodeMirror from '@uiw/react-codemirror';
-import { Decoration, DecorationSet, ViewUpdate } from '@codemirror/view';
+import { Decoration, DecorationSet, keymap, ViewUpdate } from '@codemirror/view';
 import { Tooltip, showTooltip, EditorView } from "@codemirror/view";
 import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
 import { EditorState } from "@codemirror/state";
 import { StateObject } from "../App";
-import { perturbFunc } from '../utils/perturb';
+import { Loc, perturb } from '../utils/perturb';
+import { history, historyKeymap, undo, redo } from "@codemirror/commands"; // Import history commands
+import { useRef } from 'react';
 
 interface EditorProps {
   code: string;
   setCurrentEditorCode: React.Dispatch<React.SetStateAction<string>>;
   updateState: <K extends keyof StateObject>(index: number, key: K, value: StateObject[K]) => void
-  userClicked: boolean;
-  setUserClicked: React.Dispatch<React.SetStateAction<boolean>>
   setNumSketches: React.Dispatch<React.SetStateAction<number[]>>
-  setLastInserted: React.Dispatch<React.SetStateAction<number>>
+  setLastClicked: React.Dispatch<React.SetStateAction<number>>
+  stateArray: StateObject[]
 }
 
-export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, updateState, setUserClicked, setNumSketches, setLastInserted }) => {
+export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, updateState, setNumSketches, setLastClicked, stateArray }) => {
+  const editorViewRef = useRef<EditorView | null>(null);
 
   // generate cursor tooltips
   function getCursorTooltips(state: EditorState): readonly Tooltip[] {
@@ -93,6 +95,14 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     setCurrentEditorCode(currentText);
   };
 
+  const handleUndo = () => {
+    if (editorViewRef.current) undo(editorViewRef.current);
+  };
+
+  const handleRedo = () => {
+    if (editorViewRef.current) redo(editorViewRef.current);
+  };
+
   const handleMouseMove = (view: EditorView, event: MouseEvent) => {
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
 
@@ -111,10 +121,10 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
 
 
   const handleClickEvent = (view: EditorView, pos: number, event: MouseEvent) => {
-    setUserClicked(true);
     const state = view.state;
     const doc = state.doc;
     const curr_pos = pos; // the position our mouse clicked
+    setLastClicked(curr_pos)
 
     if (pos !== null) {
       const { from, to, text } = view.state.doc.lineAt(pos);
@@ -129,8 +139,10 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     }
 
     try {
-      const { possibleCodes, addedFuncs } = perturbFunc(code, curr_pos, undefined);
-      console.log(addedFuncs)
+      const clicked_pos = {start: curr_pos, end: curr_pos} as Loc;
+      const { possibleCodes, addedFuncs, lines } = perturb(code, clicked_pos, undefined);
+      console.log('lines: ',lines)
+      console.log(possibleCodes)
       const numSketches = addedFuncs.filter(x => x.length > 0).map(x => x.length);
       setNumSketches(numSketches);
 
@@ -139,6 +151,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
         for (let j = 0; j < possibleCodes[i].length; j++) {
           updateState(counter, "sketchCode", possibleCodes[i][j])
           updateState(counter, "addedFunction", addedFuncs[i][j])
+          updateState(counter+1, 'lineInserted', lines[i][j])
           counter += 1
         }
       }
@@ -160,7 +173,9 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
           handleClickEvent(view, pos, event);
         }
       }
-    })
+    }),
+    history(),
+    keymap.of(historyKeymap)
   ];
 
   return (
@@ -170,6 +185,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
         height="300px"
         extensions={extensions}
         onUpdate={handleEditorChange}
+        onCreateEditor={(view) => (editorViewRef.current = view)}
       />
     </div>
   );

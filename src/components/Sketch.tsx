@@ -6,7 +6,7 @@ import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
 import { Stack, Button } from '@mui/material';
 import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../utils/check_commands'
-import { perturbFunc } from '../utils/perturb';
+import { perturb } from '../utils/perturb';
 
 
 interface SketchProps {
@@ -15,21 +15,21 @@ interface SketchProps {
   updateState: <K extends keyof StateObject>(index: number, key: K, value: StateObject[K]) => void;
   stateArray: StateObject[];
   setNumSketches: React.Dispatch<React.SetStateAction<number[]>>
-  setLastInserted: React.Dispatch<React.SetStateAction<number>>
+  setLastClicked: React.Dispatch<React.SetStateAction<number>>
+  lastClicked: number;
 }
 
-export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateArray, setNumSketches, setLastInserted }) => {
+export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateArray, setNumSketches, setLastClicked, lastClicked }) => {
   const [dims, setDims] = useState<string[]>(['320px','320px']);
   
   const handleClick = () => { // find out how to log what was clicked
-    console.log('handleClick run');
     try {
       updateState(0, "sketchCode", code);
     } catch (e) {
       console.error('couldnt update state', e)
     }
 
-    const { possibleCodes, addedFuncs } = perturbFunc(code, null, state);
+    const { possibleCodes, addedFuncs, lines } = perturb(code, state.lineInserted!, state);
     const numSketches = addedFuncs.map((x) => x.length);
     setNumSketches(numSketches);
 
@@ -38,21 +38,26 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
       for (let j = 0; j < possibleCodes[i].length; j++) {
         updateState(counter+1, "sketchCode", possibleCodes[i][j])
         updateState(counter+1, "addedFunction", addedFuncs[i][j])
+        updateState(counter+1, 'lineInserted', lines[i][j])
         counter += 1
       }
     }
+    console.log('stateArray after sketch click: ',stateArray)
   };  
 
-  useEffect(() => {
-    const handleResizeMessage = (event: MessageEvent) => {
-      if (state.iframeRef.current?.contentWindow?.innerHeight && state.iframeRef.current?.contentWindow?.innerWidth) {
-        setDims([state.iframeRef.current?.contentWindow?.innerHeight.toString() + 'px',state.iframeRef.current?.contentWindow?.innerWidth.toString() + 'px'])
-      }
-    };
-
-    window.addEventListener('message', handleResizeMessage);
-    return () => window.removeEventListener('message', handleResizeMessage);
-  }, []);
+  const generateSrcDoc = (sketch: string) => {
+    return `
+    <!doctype html>
+      <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js"></script>
+      </head>
+      <body>
+        <script>
+          ${sketch}
+        </script>
+      </body>
+    <html>`
+  }
 
   return (
     <div style={{}}>
@@ -60,8 +65,8 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
       <div style={{ display: 'flex', width: 'fit-content', height: 'fit-content', overflow: 'hidden' }}>
         <Stack>
           <iframe 
-            ref={state.iframeRef} 
-            style={{ width: dims[1], height: dims[0], border: 'none' , resize: 'both', overflow: 'auto'}} 
+            srcDoc={generateSrcDoc(state.sketchCode)}
+            style={{ width: dims[1], height: dims[0], border: 'none' , resize: 'both', overflow: 'scroll'}} 
             title={state.addedFunction} 
           />
           <Button color="inherit" size='small' style={{textTransform: 'none', marginTop: -10}} onClick={handleClick}>{state.addedFunction}</Button>

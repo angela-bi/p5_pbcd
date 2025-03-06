@@ -14,10 +14,11 @@ interface SketchRowProps {
   setNumSketches: React.Dispatch<React.SetStateAction<number[]>>
   numSketches: number[];
   index: number;
-  setLastInserted: React.Dispatch<React.SetStateAction<number>>
+  setLastClicked: React.Dispatch<React.SetStateAction<number>>
+  lastClicked: number;
 }
 
-export const SketchRow: React.FC<SketchRowProps> = ({updateState, stateArray, index, numSketches, setNumSketches, setLastInserted}) => {
+export const SketchRow: React.FC<SketchRowProps> = ({updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked}) => {
   // get sketches for that row to render
   const start = numSketches.slice(0,index).reduce((sum, val) => sum + val, 0) + 1
   const end = start + numSketches[index] 
@@ -36,7 +37,6 @@ export const SketchRow: React.FC<SketchRowProps> = ({updateState, stateArray, in
     });
   }
   // TODO: don't render function name if it's a param row
-
   return (
     <div style={{}}>
       <Typography>{functionName}</Typography>
@@ -49,7 +49,8 @@ export const SketchRow: React.FC<SketchRowProps> = ({updateState, stateArray, in
           code={state.sketchCode}
           updateState={updateState}
           setNumSketches={setNumSketches}
-          setLastInserted={setLastInserted}
+          setLastClicked={setLastClicked}
+          lastClicked={lastClicked}
         />)
       })}
     </Stack>

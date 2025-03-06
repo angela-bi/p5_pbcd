@@ -8,14 +8,14 @@ import Grid from '@mui/material/Grid2';
 import { useEffect } from 'react';
 import { Stack, Typography } from '@mui/material';
 import SketchRow from './components/SketchRow';
+import { Loc, perturb } from './utils/perturb';
 
 export interface StateObject {
-  iframeRef: React.RefObject<HTMLIFrameElement>;
   sketchCode: string;
   currentEditorCode?: string;
-  p5_appended: boolean;
   addedFunction?: string;
   displayName: boolean;
+  lineInserted?: Loc;
   // id: number; this would be used to distinguish between functions of the same type
 }
 
@@ -23,9 +23,8 @@ function App() {
   // number of sketches per row should be the number of parameters in a function
   // when user first enters page, there should only be one sketch
   const [stateArray, setStateArray] = useState<StateObject[]>([]);
-  const [userClicked, setUserClicked] = useState<boolean>(false);
   const [numSketches, setNumSketches] = useState<number[]>([]);
-  const [lastInserted, setLastInserted] = useState<number>(0);
+  const [lastClicked, setLastClicked] = useState<number>(114);
 
   const updateStateProperty = <K extends keyof StateObject>(
     index: number,
@@ -38,65 +37,66 @@ function App() {
       )
     );
     setStateArray((prevArray) => [...prevArray]); // to ensure update
-  };  
-  
-  const startSketch = (index: number, code: string): void => {
-    const state = stateArray[index];
-    const iframe = state?.iframeRef?.current;
-  
-    if (iframe) {
-      const doc = iframe.contentDocument;
-      if (!doc) return;
-        if (!doc.getElementById("p5-script")) {
-        const url = "https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js";
-        let script = document.createElement("script");
-        script.onerror = () => console.log("Failed to load script: " + url);
-        script.setAttribute("src", url);
-        script.id = "p5-script";
-        doc.body.appendChild(script);
-  
-        setStateArray((prevArray) =>
-          prevArray.map((s, i) => (i === index ? { ...s, p5_appended: true } : s))
-        );
-      }
-  
-      const oldSketch = doc.getElementById("sketch-script");
-      if (oldSketch) oldSketch.remove();
-  
-      let newSketchScript = document.createElement("script");
-      newSketchScript.textContent = code;
-      newSketchScript.id = "sketch-script";
-      doc.body.appendChild(newSketchScript);
-    }
-  };  
+  };
 
   const defaultSketchCode = `function setup() {
   createCanvas(300, 300);
 }
 function draw() {
   background(220);
+  fill(0, 0, 0, 0)
   ellipse(50, 50, 50, 50);
 }`;
 
-  useEffect(() => {  
-    setStateArray((prevState) => {
-      const newStateArray = Array.from({ length: 20 }, (_, index) => ({
-        iframeRef: prevState[index]?.iframeRef || React.createRef<HTMLIFrameElement>(),
-        sketchCode: prevState[index]?.sketchCode || defaultSketchCode,
-        p5_appended: false,
-        addedFunction: prevState[index]?.addedFunction || "",
-        displayName: index === 0 ? false : true
-      }));
+  function getIndices(counter: number, nestedList: any[][]) {
+    let i = 0;
+    let cumulativeCount = 0;
+    while (i < nestedList.length) {
+      if (counter < cumulativeCount + nestedList[i].length) {
+        break;
+      }
+      cumulativeCount += nestedList[i].length;
+      i++;
+    }
+    let j = counter - cumulativeCount;
+    return { i, j };
+  }
 
-      return newStateArray;
-    });
+  useEffect(() => {
+    const curr_pos = {start: lastClicked, end: lastClicked} as Loc
+    const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos, undefined);
+    console.log(possibleCodes)
+    const numSketches = addedFuncs.map((x) => x.length);
+    setNumSketches(numSketches);
+    const totalNumSketches = numSketches.flat().reduce((d, i) => d + i)
+    
+    const newStateArray: StateObject[] = [];
+    newStateArray.push({
+      sketchCode: defaultSketchCode,
+      displayName: false,
+    })
+    for (let counter = 0; counter < totalNumSketches; counter++) {
+      const {i, j} = getIndices(counter, possibleCodes)
+      newStateArray.push({
+        sketchCode: possibleCodes[i][j],
+        addedFunction: addedFuncs[i][j],
+        displayName: counter === 0 ? false : true,
+        lineInserted: lines[i][j]
+      })
+    }
+    setStateArray(newStateArray);
+    console.log(stateArray)
   }, []);
   
-  useEffect(() => {
-    stateArray.forEach((state, index) => {
-      if (state.iframeRef.current) startSketch(index, state.sketchCode);
-    });
-  }, [JSON.stringify(stateArray.map((state) => state.sketchCode))]);   
+  // useEffect(() => {
+  //   stateArray.forEach((state, index) => {
+  //     if (index == 0) {
+  //       startSketch(index, state.currentEditorCode!);
+  //     } else {
+  //       startSketch(index, state.sketchCode);
+  //     }
+  //   });
+  // }, [JSON.stringify(stateArray.map((state) => state.sketchCode))]);   
   
   const firstState = stateArray[0]
 
@@ -106,6 +106,7 @@ function draw() {
 }
 
 function draw() {
+  fill(0, 0, 0, 0)
   ellipse(50, 50, 50, 50);
 }
 `)
@@ -121,16 +122,14 @@ function draw() {
                 currentEditorCode={currentEditorCode}
                 updateState={updateStateProperty}
                 stateArray={stateArray}
-                startSketch={startSketch}
                 />
                 <Editor
                 code={firstState.sketchCode}
                 setCurrentEditorCode={setCurrentEditorCode}
                 updateState={updateStateProperty}
-                userClicked={userClicked}
-                setUserClicked={setUserClicked}
+                stateArray={stateArray}
                 setNumSketches={setNumSketches}
-                setLastInserted={setLastInserted}
+                setLastClicked={setLastClicked}
                 />
                 <div>
                   {stateArray.map((state, index) => {
@@ -142,7 +141,8 @@ function draw() {
                       code={state.sketchCode}
                       updateState={updateStateProperty}
                       setNumSketches={setNumSketches}
-                      setLastInserted={setLastInserted}
+                      setLastClicked={setLastClicked}
+                      lastClicked={lastClicked}
                     />)
                   }
                   })}
@@ -151,8 +151,7 @@ function draw() {
             )}
           <Grid size={9}>
             <div style={{ maxHeight: "100vh", overflowY: "auto" }}>
-              {userClicked && 
-                numSketches.map((num, index) => ( // where num is the number of sketches per row and index is the ith row
+              {numSketches.map((num, index) => ( // where num is the number of sketches per row and index is the ith row
                   <Stack key={index}>
                     <SketchRow
                       updateState={updateStateProperty}
@@ -160,7 +159,8 @@ function draw() {
                       numSketches={numSketches}
                       setNumSketches={setNumSketches}
                       index={index}
-                      setLastInserted={setLastInserted}
+                      setLastClicked={setLastClicked}
+                      lastClicked={lastClicked}
                     />
                   </Stack>
               ))}
