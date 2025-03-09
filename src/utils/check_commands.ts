@@ -4,12 +4,12 @@ export type CommandName = ConstructorNames | ModifierNames
 export type InsertDirection = "Above" | "Below"
 
 export type Command = {
-    name: CommandName
-	valid: CommandName[]
-	invalid: CommandName[]
+    name: string
+	valid: string[]
+	invalid: string[]
 	default_valid: Boolean
-    kind: "Modifier" | "Constructor" | "ClosingModifier"
-    direction: InsertDirection | null 
+    direction: InsertDirection | null
+    paired_commands?: string[] // can use this in logic
     num_params: number
 }
 

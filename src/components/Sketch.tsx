@@ -4,7 +4,7 @@ import * as t from "@babel/types";
 import * as parser from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
-import { Stack, Button } from '@mui/material';
+import { Stack, Button, Divider } from '@mui/material';
 import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../utils/check_commands'
 import { perturb } from '../utils/perturb';
 
@@ -30,7 +30,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
     }
 
     const { possibleCodes, addedFuncs, lines } = perturb(code, state.lineInserted!, state);
-    const numSketches = addedFuncs.map((x) => x.length);
+    const numSketches = addedFuncs.filter(x => x.length > 0).map((x) => x.length);
     setNumSketches(numSketches);
 
     let counter = 0
@@ -69,7 +69,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
             style={{ width: dims[1], height: dims[0], border: 'none' , resize: 'both', overflow: 'scroll'}} 
             title={state.addedFunction} 
           />
-          <Button color="inherit" size='small' style={{textTransform: 'none', marginTop: -10}} onClick={handleClick}>{state.addedFunction}</Button>
+          <Button color="inherit" size='small' style={{textTransform: 'none'}} onClick={handleClick}>{state.addedFunction}</Button>
         </Stack>
       </div>
       }

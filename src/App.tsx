@@ -6,9 +6,12 @@ import { Button } from './components/Button';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid2';
 import { useEffect } from 'react';
-import { Stack, Typography } from '@mui/material';
+import { Divider, Stack, Typography } from '@mui/material';
 import SketchRow from './components/SketchRow';
 import { Loc, perturb } from './utils/perturb';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import { Header } from './components/Header';
 
 export interface StateObject {
   sketchCode: string;
@@ -65,7 +68,6 @@ function draw() {
   useEffect(() => {
     const curr_pos = {start: lastClicked, end: lastClicked} as Loc
     const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos, undefined);
-    console.log(possibleCodes)
     const numSketches = addedFuncs.map((x) => x.length);
     setNumSketches(numSketches);
     const totalNumSketches = numSketches.flat().reduce((d, i) => d + i)
@@ -85,18 +87,7 @@ function draw() {
       })
     }
     setStateArray(newStateArray);
-    console.log(stateArray)
-  }, []);
-  
-  // useEffect(() => {
-  //   stateArray.forEach((state, index) => {
-  //     if (index == 0) {
-  //       startSketch(index, state.currentEditorCode!);
-  //     } else {
-  //       startSketch(index, state.sketchCode);
-  //     }
-  //   });
-  // }, [JSON.stringify(stateArray.map((state) => state.sketchCode))]);   
+  }, []);  
   
   const firstState = stateArray[0]
 
@@ -114,6 +105,8 @@ function draw() {
   return (
     <div className="App">
       <Box>
+        <Stack>
+        <Header/>
         <Grid container spacing={2}>
             {firstState && (
               <Grid size={3}>
@@ -149,7 +142,11 @@ function draw() {
                 </div>
               </Grid>
             )}
-          <Grid size={9}>
+          <Grid size={9} style={{
+        borderStyle: 'solid',
+        borderColor: 'rgba(0, 0, 0, 0.12)',
+        borderWidth: '0 0 0 1px'
+      }}>
             <div style={{ maxHeight: "100vh", overflowY: "auto" }}>
               {numSketches.map((num, index) => ( // where num is the number of sketches per row and index is the ith row
                   <Stack key={index}>
@@ -167,6 +164,7 @@ function draw() {
             </div>
           </Grid>
         </Grid>
+        </Stack>
       </Box>
     </div>
   );}

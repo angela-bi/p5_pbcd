@@ -19,7 +19,6 @@ export const Button: React.FC<ButtonProps> = ({ code, currentEditorCode, updateS
           // ref = document.querySelector('iframe')?.contentWindow?.document;
           console.log('button pressed, currentEditorCode: ', currentEditorCode)
           updateState(0, "sketchCode", currentEditorCode)
-          // startSketch(0, currentEditorCode)
         }}>
         <PlayArrowIcon/>
         </IconButton>
