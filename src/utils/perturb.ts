@@ -129,7 +129,7 @@ export function perturb(
       
                         const clonedPath = traverse(clonedAst, {
                           enter(clonedPath) {
-                            //console.log(clonedPath, currentPath.node.start, currentPath.node.end)
+                            console.log(clonedPath, currentPath.node.start, currentPath.node.end)
                             if (clonedPath.node.loc!.start.index === currentPath.node.start && clonedPath.node.loc!.end.index === currentPath.node.end) {
                               clonedPath.stop(); // Stop traversal once the target node is found
                               const clonedParentPath = clonedPath.parentPath;
