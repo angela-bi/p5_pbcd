@@ -14,14 +14,21 @@ const rect = {name: "rect", valid: [], invalid: ["vertex"], default_valid: true,
 const square = {name: "square", valid: [], invalid: ["vertex"], default_valid: true, direction: "Below", num_params: 3} as Command
 const triangle = {name: "triangle", valid: [], invalid: ["vertex"], default_valid: true, direction: "Below", num_params: 4} as Command
 
-const fill = {name: "fill", valid: ["circle", "ellipse"], invalid: [], default_valid: false, direction: "Above", paired_commands: ["noFill"], num_params: 3} as Command
-const noFill = {name: "noFill", valid: ["fill"], invalid: [], default_valid: false, direction: "Below", paired_commands: [], num_params: 3} as Command
+const fill = {name: "fill", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Above", num_params: 3} as Command
+//const noFill = {name: "noFill", valid: ["fill"], invalid: [], default_valid: false, direction: "Below", paired_commands: [], num_params: 3} as Command
 
 const beginShape = {name: "beginShape", valid: [], invalid: ["vertex", "beginShape"], default_valid: true, direction: "Below", paired_commands: ["vertex", "endShape"], num_params: 0} as Command // since it's only a hoverCommand
-const vertex = {name: "vertex", valid: ["beginShape", "vertex"], invalid: [], default_valid: false, direction: "Below", num_params: 0} as Command
-const endShape = {name: "endShape", valid: ["beginShape"], invalid: [], default_valid: false, direction: "Below", paired_commands: [], num_params: 0} as Command
+const vertex = {name: "vertex", valid: ["beginShape", "vertex"], invalid: [], default_valid: false, direction: "Below", num_params: 2} as Command
+const endShape = {name: "endShape", valid: ["vertex"], invalid: [], default_valid: false, direction: "Below", num_params: 0} as Command
 
-let commands = [circle, ellipse, fill, beginShape, vertex, arc, line, quad, rect, square, triangle];
+const erase = {name: "erase", valid: [], invalid: ["vertex", "erase"], default_valid: true, direction: "Below", paired_commands: ["circle", "noErase"], num_params: 0} as Command // since it's only a hoverCommand
+const noErase = {name: "noErase", valid: ["erase"], invalid: [], default_valid: false, direction: "Below", num_params: 0} as Command // since it's only a hoverCommand
+
+const translate = {name: "translate", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Above", num_params: 2} as Command
+const push = {name: "push", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Below", paired_commands: ["translate","pop"], num_params: 0} as Command
+const pop = {name: "pop", valid: ["applyMatrix"], invalid: [], default_valid: false, direction: "Below", num_params: 0} as Command
+
+let commands = [circle, ellipse, fill, translate, push, pop, beginShape, vertex, arc, line, rect, endShape, erase, noErase];
 const paramSuggestions = [0, 0.1, 10, 100];
 
 export type Loc = {
@@ -40,7 +47,6 @@ export function perturb(
   let ast = parser.parse(code);
 
   if (currPos) { // user clicks editor
-    console.log('currPos: ', currPos)
     traverse(ast, {
         enter(path) {
           const { node } = path;
@@ -70,7 +76,6 @@ export function perturb(
                         let index;
                         for (let j = 0; j < clonedPath.node.arguments.length; j++) {
                           // find the clicked argument index; if the start and end
-                          // console.log(clonedPath.node.arguments[j].loc.start!.index, currPos.start, clonedPath.node.arguments[j].end!, currPos.end)
                           if (clonedPath.node.arguments[j].loc!.start!.index <= currPos.start && clonedPath.node.arguments[j].loc!.end!.index >= currPos.end) {
                             index = j
                           }
@@ -82,13 +87,13 @@ export function perturb(
                           } else {
                             const existingArg = clonedPath.node.arguments[j];
                             if (t.isNumericLiteral(existingArg)) {params.push(t.numericLiteral(existingArg.value))} // 100 should be replaced with the existing param
+                            else if (t.isIdentifier(existingArg)) {params.push(existingArg)}
                           }
                         }
                         const callExpression = t.callExpression(callee, params);
                         addedFunc.push(generate(callExpression).code)
                         clonedPath.replaceWith(callExpression)
                         possibleCode.push(generate(clonedAst).code)
-                        console.log(addedFunc)
                         line.push({start: currPos.start, end: currPos.end})
                       }
                     }
@@ -102,7 +107,6 @@ export function perturb(
               }
             } 
             if (path.node.type === 'Identifier' || path.node.type === 'NumericLiteral') { // user clicks on function, or after user clicks parameter
-              //console.log(path.node)
               while (currentPath.parentPath && currentPath.parentPath.node.type !== 'CallExpression') {
                 currentPath = currentPath.parentPath;
               }
@@ -121,15 +125,57 @@ export function perturb(
                     let addedFunc: string[] = [];
                     let possibleCode: string[] = [];
                     let line: Loc[] = [];
+                    if (commands[i].num_params === 0 && insertDirections[i] !== null) { // for functions like beginShape(), fill()
+                      const clonedAst = t.cloneNode(ast, true, false);
+                      const clonedPath = traverse(clonedAst, {
+                        enter(clonedPath) {
+                          if (clonedPath.node.loc!.start.index === currentPath.node.start && clonedPath.node.loc!.end.index === currentPath.node.end) {
+                            clonedPath.stop(); // Stop traversal once the target node is found
+                            const clonedParentPath = clonedPath.parentPath;
+    
+                            const callee = t.identifier(commands[i].name);
+                            const params = [] as t.Expression[];
+                            
+                            const callExpression = t.callExpression(callee, params);
+                            (callExpression as any).extra = { visited: true };
+    
+                            if (insertDirections[i] === 'Above' && clonedParentPath) {
+                              clonedParentPath.insertBefore(callExpression);
+                              line.push({start: clonedParentPath.node!.loc!.start!.index - 5, end: clonedParentPath.node!.loc!.start!.index - 5} as Loc)
+                            } else if (insertDirections[i] === 'Below' && clonedParentPath) {
+                              let add_commands: t.CallExpression[] = [callExpression];
+                              console.log(func.paired_commands)
+                              if (func.paired_commands && func.paired_commands!.length > 0) {
+                                for (let i=0; i < func.paired_commands.length; i++) {
+                                  const paired_command = createCommand(func.paired_commands[i], commands)
+                                  console.log(func.paired_commands[i], paired_command)
+                                  const callee = t.identifier(commands[i].name);
+                                  const params = [] as t.Expression[];
+                                  if (paired_command!.num_params > 0) {
+                                    for (let k  = 0; k < paired_command!.num_params!; k++) {
+                                      params.push(t.numericLiteral(100))
+                                    }
+                                  }
+                                  const callExpression = t.callExpression(callee, params);
+                                  add_commands.push(callExpression)
+                                }
+                              }
+                              clonedParentPath.insertAfter(add_commands);
+                              line.push({start: clonedParentPath.node!.loc!.end!.index + 5, end: clonedParentPath.node!.loc!.end!.index + 5} as Loc)
+                            }
+                            addedFunc.push(generate(callExpression).code)
+                          }
+                        },
+                      });
+                      const output = generate(clonedAst, {}, code).code;
+                      possibleCode.push(output);
+                    }
                     for (let k  = 0; k < commands[i].num_params; k++) {
                       if (insertDirections[i] !== null) {
                         const clonedAst = t.cloneNode(ast, true, false);
-                        //const uniqueId = `injected_${Date.now()}`;
-                        const nodeMap = new WeakMap();
       
                         const clonedPath = traverse(clonedAst, {
                           enter(clonedPath) {
-                            console.log(clonedPath, currentPath.node.start, currentPath.node.end)
                             if (clonedPath.node.loc!.start.index === currentPath.node.start && clonedPath.node.loc!.end.index === currentPath.node.end) {
                               clonedPath.stop(); // Stop traversal once the target node is found
                               const clonedParentPath = clonedPath.parentPath;
@@ -144,54 +190,27 @@ export function perturb(
                                 }
                               }
                               
-                              // const uniqueId = `injected_${Date.now()}`;
                               const callExpression = t.callExpression(callee, params);
-                              nodeMap.set(callExpression, true);
                               (callExpression as any).extra = { visited: true };
-                              // (callExpression.callee as any).uniqueId = uniqueId;
       
                               if (insertDirections[i] === 'Above' && clonedParentPath) {
                                 clonedParentPath.insertBefore(callExpression);
+                                line.push({start: clonedParentPath.node!.loc!.start!.index - 5, end: clonedParentPath.node!.loc!.start!.index - 5} as Loc)
                               } else if (insertDirections[i] === 'Below' && clonedParentPath) {
                                 clonedParentPath.insertAfter(callExpression);
+                                line.push({start: clonedParentPath.node!.loc!.end!.index + 5, end: clonedParentPath.node!.loc!.end!.index + 5} as Loc)
                               }
-                              line.push({start: clonedPath.node!.loc!.start!.index, end: clonedPath.node!.loc!.end!.index} as Loc)
+                              
                               addedFunc.push(generate(callExpression).code)
                             }
                           },
                         });
 
-                        let start: number | null = null;
-                        let end: number | null = null;
-
-                        const updatedCode = generate(clonedAst, {
-                          retainFunctionParens: true,
-                          decoratorsBeforeExport: true,
-                        }).code;
-                        
-                        const newAst = parser.parse(updatedCode, {
-                          sourceType: "module",
-                          plugins: ["jsx"],
-                          ranges: true,
-                        });
-
-                        traverse(clonedAst, {
-                          CallExpression(path) {
-                            if (nodeMap.has(path.node)) {
-                              // if ((path.node.callee as any).uniqueId === uniqueId) {
-                              console.log('node marked visited: ', path)
-                              // start = path.node.loc!.start!.index!
-                              // end = path.node.loc!.end!.index!
-                            }
-                          }
-                        });
-
-                        //line.push({start: start!, end: end!} as Loc)
-
                         const output = generate(clonedAst, {}, code).code;
                         possibleCode.push(output);
                       }
                     }
+                    
                     if (addedFunc.length > 0 && possibleCode && line) {
                       addedFuncs.push(addedFunc)
                       possibleCodes.push(possibleCode)
@@ -205,6 +224,6 @@ export function perturb(
         },
       });
   }
-  console.log(lines)
+  console.log(possibleCodes)
   return { possibleCodes, addedFuncs, lines };
 }

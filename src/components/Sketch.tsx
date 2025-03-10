@@ -62,14 +62,21 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
   return (
     <div style={{}}>
       {(!state.displayName || state.addedFunction) && 
-      <div style={{ display: 'flex', width: 'fit-content', height: 'fit-content', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', width: 'fit-content', height: 'fit-content', overflow: 'hidden' }} onClick={handleClick}>
         <Stack>
           <iframe 
             srcDoc={generateSrcDoc(state.sketchCode)}
             style={{ width: dims[1], height: dims[0], border: 'none' , resize: 'both', overflow: 'scroll'}} 
             title={state.addedFunction} 
           />
-          <Button color="inherit" size='small' style={{textTransform: 'none'}} onClick={handleClick}>{state.addedFunction}</Button>
+          {/* <div 
+            style={{
+              position: 'absolute',
+              zIndex: 1, // Ensure it is above the iframe
+              background: 'transparent',
+            }}
+          /> */}
+          <Button color="inherit" size='small' style={{textTransform: 'none'}} >{state.addedFunction}</Button>
         </Stack>
       </div>
       }
