@@ -1,13 +1,23 @@
-
-import CodeMirror from '@uiw/react-codemirror';
-import { Decoration, DecorationSet, keymap, ViewUpdate } from '@codemirror/view';
-import { Tooltip, showTooltip, EditorView } from "@codemirror/view";
-import { RangeSetBuilder, StateEffect, StateField } from "@codemirror/state";
-import { EditorState } from "@codemirror/state";
-import { StateObject } from "../App";
-import { Loc, perturb } from '../utils/perturb';
+import CodeMirror from "@uiw/react-codemirror";
+import {
+  Decoration,
+  DecorationSet,
+  keymap,
+  ViewUpdate,
+  Tooltip,
+  showTooltip,
+  EditorView
+} from "@codemirror/view";
+import {
+  RangeSetBuilder,
+  StateEffect,
+  StateField,
+  EditorState
+} from "@codemirror/state";
 import { history, historyKeymap, undo, redo } from "@codemirror/commands"; // Import history commands
-import { useRef } from 'react';
+import { StateObject } from "../App";
+import { Loc, perturb } from "../utils/perturb";
+import { useRef } from "react";
 
 interface EditorProps {
   code: string;
@@ -47,18 +57,6 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
         };
       });
   }
-
-  // for tooltip functionality - not currently
-  const cursorTooltipField = StateField.define<readonly Tooltip[]>({
-    create: getCursorTooltips,
-
-    update(tooltips, tr) {
-      if (!tr.docChanged && !tr.selection) return tooltips;
-      return getCursorTooltips(tr.state);
-    },
-
-    provide: f => showTooltip.computeN([f], state => state.field(f))
-  });
 
   const highlightField = StateField.define<DecorationSet>({
     create() {
