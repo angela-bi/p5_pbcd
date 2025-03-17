@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StateObject } from '../App';
 import * as t from "@babel/types";
 import * as parser from '@babel/parser';
@@ -21,6 +21,7 @@ interface SketchProps {
 
 export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateArray, setNumSketches, setLastClicked, lastClicked }) => {
   const [dims, setDims] = useState<string[]>(['320px','320px']);
+  const [hasError, setHasError] = useState<boolean>(false);
   
   const handleClick = () => { // find out how to log what was clicked
     try {
@@ -49,7 +50,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
     return `
     <!doctype html>
       <head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js" onerror="function() {alert('Error loading ' + this.src);};"></script>
       </head>
       <body>
         <script>
@@ -58,6 +59,30 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
       </body>
     <html>`
   }
+
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  let src_code = generateSrcDoc(state.sketchCode)
+  
+  useEffect(() => {
+    if (!iframeRef.current) return;
+
+    const iframe = iframeRef.current;
+
+    const handleLoad = () => {
+      // Check if the iframe's contentDocument is accessible
+      // and whether it contains any error messages
+      if (iframe.contentDocument?.querySelector("body script[src^='chrome-error://']")) {
+        setHasError(true);
+        console.error("error in iframe")
+      }
+    };
+
+    iframe.addEventListener("load", handleLoad);
+
+    return () => {
+      iframe.removeEventListener("load", handleLoad);
+    };
+  }, []);
 
   return (
     <div style={{}}>
@@ -73,7 +98,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
               }
             }}
             style={{height:"300px", width:"100%", border: "none", overflow: "hidden"}}
-            srcDoc={generateSrcDoc(state.sketchCode)}
+            srcDoc={src_code}
             title={state.addedFunction} 
           />
           <Button color="inherit" size='small' style={{textTransform: 'none'}} >{state.addedFunction}</Button>

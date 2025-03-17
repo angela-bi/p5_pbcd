@@ -12,6 +12,7 @@ import { Loc, perturb } from './utils/perturb';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import { Header } from './components/Header';
+// import { Console } from './components/Console';
 
 export interface StateObject {
   sketchCode: string;
@@ -141,6 +142,7 @@ function draw() {
                 setLastClicked={setLastClicked}
                 />
                 <div>
+                {/* <Console></Console> */}
                   {stateArray.map((state, index) => {
                   if (index === 0) {
                     return (

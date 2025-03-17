@@ -11,23 +11,27 @@ export type Loc = {
   end: number
 }
 
-function path_contains_pos(path: NodePath<t.Node>, pos: Loc) {
-  return (path.node.start && path.node.end && pos.start == pos.end && path.node.start <= pos.start && path.node.end >= pos.end) // if user clicks a single position
-  || (path.node.start && path.node.end && path.node.start >= pos.start && path.node.end <= pos.end) // if after function is added from clicking on sketch
+// given the position the user clicked, returns true if clicked position is within the current path's start and end position
+function path_contains_pos(path: NodePath<t.Node>, pos: Loc): boolean | null {
+  if (path.node.start && path.node.end && pos.start == pos.end && path.node.start <= pos.start && path.node.end >= pos.end || path.node.start && path.node.end && path.node.start >= pos.start && path.node.end <= pos.end) {
+    return true
+  } else {
+    return null
+  }
 }
 
-function is_param(path: NodePath<t.Node>) {
-  // returns true if the path clicked is an argument of a function
+// returns true if the path clicked is an argument of a function e.g. 50 or mouseX in ellipse(mouseX,50,50), else false
+function is_param(path: NodePath<t.Node>): boolean {
   return path.listKey === "arguments"
 }
 
-function is_function(path: NodePath<t.Node>) {
+// returns true if path is a function e.g. ellipse in ellipse(mouseX,50,50), else false
+function is_function(path: NodePath<t.Node>): boolean | null {
   return (t.isCallExpression(path.node) && path.parentPath && t.isExpressionStatement(path.parentPath.node))
 }
 
-function find_function(path: NodePath<t.Node>) {
-  // given a function argument node, traverses up the AST 
-
+// given a function path, traverses up the AST until the path is a function; else null
+function find_function(path: NodePath<t.Node>): NodePath<t.Node> | null {
   while (path && path.parentPath) {
     if (path && is_function(path)) {
       return path
@@ -37,27 +41,14 @@ function find_function(path: NodePath<t.Node>) {
   return null
 }
 
+// given a path, find all the variables in its scope including global, block
 function find_vars_inscope(path: NodePath<t.Node>) {
-  // given a path, find all the variables in its scope
-  // should find global variables, 
 }
 
-function suggest_params(arg: t.ArgumentPlaceholder | t.SpreadElement | t.Expression) {
-  let output = []
-  for (let i=0; i < params.length; i++) {
-    output.push(t.identifier(params[i]))
-    for (let j=0; j < operators.length; j++) {
-      if (t.isNumericLiteral(arg)) {
-        output.push(t.binaryExpression(operators[j], t.identifier(params[i]), t.numericLiteral(arg.value)))
-      } else if (t.isIdentifier(arg)) {
-        output.push(t.binaryExpression(operators[j], t.identifier(params[i]), arg))
-      }
-    }
-  }
-}
-
+// given an ast, path representing the function (returned by find_function), and position that user clicked
+// returns three arrays of the same structure: [row_1, row_2, ... ] where row_i represents function i. 
+// each row_i has n items, where n=number of function i's arguments e.g. if row_i represents ellipse, n=4
 function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.Node>, curr_pos: Loc) {
-  // returns three arrays of suggestions given a path representing the function
   let addedFunc: string[] = []; // one component per param suggestion
   let possibleCode: string[] = [];
   let line: Loc[] = [];
@@ -127,32 +118,32 @@ export function perturb(
   let possibleCodes: string[][] = [];
   let addedFuncs: string[][] = [];
   let lines: Loc[][] = [];
-  let ast = parser.parse(code);
+  let ast: parser.ParseResult<t.File>;
+  try {
+    ast = parser.parse(code);
+  } catch {
+    console.error('error parsing code')
+    return {possibleCodes, addedFuncs, lines}
+  }
 
   if (currPos) { // user clicks editor
-    console.log(currPos)
     traverse(ast, {
         enter(path) {
           if (path_contains_pos(path, currPos)) {
             if (is_param(path)) { // user clicks on parameter
               let funcPath = find_function(path)
-              console.log(funcPath!.node)
               
               let { addedFunc, possibleCode, line } = perturb_params(ast, funcPath!, currPos)
-              console.log(addedFunc, possibleCode, line)
               if (addedFunc.length > 0 && possibleCode && line) {
                 addedFuncs.push(addedFunc)
                 possibleCodes.push(possibleCode)
                 lines.push(line)
               }
             }
-            let funcPath = find_function(path)
+            
             if (path.node.type === 'Identifier' || path.node.type === 'NumericLiteral') { // user clicks on function, or after user clicks parameter
-              while (path.parentPath && path.parentPath.node.type !== 'CallExpression') {
-                path = path.parentPath;
-              }
-    
-              const funcNode = path.parentPath?.node;
+              let funcNode = find_function(path)!.node
+
               if (
                 funcNode &&
                 funcNode.type === 'CallExpression' &&
