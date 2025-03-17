@@ -19,7 +19,6 @@ export interface StateObject {
   addedFunction?: string;
   displayName: boolean;
   lineInserted?: Loc;
-  // id: number; this would be used to distinguish between functions of the same type
 }
 
 function App() {
