@@ -1,4 +1,6 @@
 import CodeMirror from "@uiw/react-codemirror";
+import { langs } from '@uiw/codemirror-extensions-langs'
+import * as t from "@babel/types";
 import {
   Decoration,
   DecorationSet,
@@ -17,7 +19,10 @@ import {
 import { history, historyKeymap, undo, redo } from "@codemirror/commands"; // Import history commands
 import { StateObject } from "../App";
 import { Loc, perturb } from "../utils/perturb";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { is_param, path_contains_pos } from "../utils/perturb";
+import * as parser from "@babel/parser";
+import traverse, { NodePath } from "@babel/traverse";
 
 interface EditorProps {
   code: string;
@@ -30,7 +35,7 @@ interface EditorProps {
 
 export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, updateState, setNumSketches, setLastClicked, stateArray }) => {
   const editorViewRef = useRef<EditorView | null>(null);
-
+  const [cursorPosition, setCursorPosition] = useState<number>(114);
   // generate cursor tooltips
   function getCursorTooltips(state: EditorState): readonly Tooltip[] {
     return state.selection.ranges
@@ -123,7 +128,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     const doc = state.doc;
     const curr_pos = pos; // the position our mouse clicked
     setLastClicked(curr_pos)
-
+    setCursorPosition(curr_pos)
     if (pos !== null) {
       const { from, to, text } = view.state.doc.lineAt(pos);
       let start = pos, end = pos;
@@ -157,6 +162,61 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     }
 
   }
+  function parseCode(text:string){
+    try {
+      return parser.parse(text);
+    }catch(e){
+      const result = (e as Error).message;
+      console.log(result)
+    }
+  }
+
+function setStyle(path: NodePath, decorations: any[]){
+    const styleLoc = {
+      start: path.node.start!,
+      end: path.node.end!
+    }
+    console.log(styleLoc)
+    const highlight_decoration = Decoration.mark({
+      attributes: {
+          style: `background-color: #f783eb44; opacity: 0.5`
+      }
+    })
+      decorations.push(
+        highlight_decoration.range(styleLoc.start,styleLoc.end)
+    )
+  }
+  const highlight_extension = StateField.define<DecorationSet>({
+    create() {
+        return Decoration.none
+    },
+    update(_value, transaction) {
+        let decorations: any[] = []
+        const { state } = transaction
+        const text = state.doc.toString()
+      
+        let ast = parseCode(text)!
+        console.log(ast)
+        
+        traverse(ast, {
+          enter(path) {
+            if (path_contains_pos(path, {start: cursorPosition, end: cursorPosition})){
+              if(is_param(path)){
+                setStyle(path,decorations)
+              }
+              if(t.isCallExpression(path.node)){
+                const callee = (path.node as t.CallExpression).callee
+                if(callee.start! <= cursorPosition && callee.end! >= cursorPosition){
+                  setStyle(path,decorations)
+                }
+              }
+            }
+          }})
+          return Decoration.set(decorations)
+          
+    },
+    provide: (field) => EditorView.decorations.from(field)
+})
 
   const extensions = [
     // cursorTooltipField,
@@ -171,17 +231,24 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       }
     }),
     history(),
-    keymap.of(historyKeymap)
+    keymap.of(historyKeymap),
+    langs.javascript(),
+    highlight_extension
   ];
 
   return (
     <div>
       <CodeMirror
         value={code}
+        lang="javascript"
+        theme="light"
         height="300px"
         extensions={extensions}
         onUpdate={handleEditorChange}
         onCreateEditor={(view) => (editorViewRef.current = view)}
+        basicSetup={{
+          dropCursor: false,
+        }}
       />
     </div>
   );
