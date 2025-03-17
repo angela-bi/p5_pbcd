@@ -12,7 +12,7 @@ export type Loc = {
 }
 
 // given the position the user clicked, returns true if clicked position is within the current path's start and end position
-function path_contains_pos(path: NodePath<t.Node>, pos: Loc): boolean | null {
+export function path_contains_pos(path: NodePath<t.Node>, pos: Loc): boolean | null {
   if (path.node.start && path.node.end && pos.start == pos.end && path.node.start <= pos.start && path.node.end >= pos.end || path.node.start && path.node.end && path.node.start >= pos.start && path.node.end <= pos.end) {
     return true
   } else {
