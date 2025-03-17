@@ -21,6 +21,12 @@ export interface StateObject {
   lineInserted?: Loc;
 }
 
+const _window = window as any;
+_window.resetInterface = () => {
+  localStorage.clear();
+  window.location.reload();
+}
+
 function App() {
   // number of sketches per row should be the number of parameters in a function
   // when user first enters page, there should only be one sketch
@@ -88,7 +94,7 @@ function draw() {
   }
 
   useEffect(() => {
-    if (stateArray) {
+    if (stateArray.length > 0) {
         return;
     }
     const curr_pos = {start: lastClicked, end: lastClicked} as Loc
