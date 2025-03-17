@@ -96,7 +96,7 @@ function draw() {
 
   useEffect(() => {
     const curr_pos = {start: lastClicked, end: lastClicked} as Loc
-    const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos, undefined);
+    const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos);
     const numSketches = addedFuncs.map((x) => x.length);
     setNumSketches(numSketches);
     const totalNumSketches = numSketches.flat().reduce((d, i) => d + i, 0)

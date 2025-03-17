@@ -30,7 +30,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
       console.error('couldnt update state', e)
     }
 
-    const { possibleCodes, addedFuncs, lines } = perturb(code, state.lineInserted!, state);
+    const { possibleCodes, addedFuncs, lines } = perturb(code, state.lineInserted!);
     const numSketches = addedFuncs.filter(x => x.length > 0).map((x) => x.length);
     setNumSketches(numSketches);
 

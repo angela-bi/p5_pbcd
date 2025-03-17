@@ -143,7 +143,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
 
     try {
       const clicked_pos = {start: curr_pos, end: curr_pos} as Loc;
-      const { possibleCodes, addedFuncs, lines } = perturb(code, clicked_pos, undefined);
+      const { possibleCodes, addedFuncs, lines } = perturb(code, clicked_pos);
       const numSketches = addedFuncs.filter(x => x.length > 0).map(x => x.length);
       setNumSketches(numSketches);
 

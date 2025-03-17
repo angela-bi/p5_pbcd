@@ -112,7 +112,6 @@ function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.No
 export function perturb(
   code: string,
   currPos: Loc,
-  state: StateObject | undefined
 ) {
   let possibleCodes: string[][] = [];
   let addedFuncs: string[][] = [];
