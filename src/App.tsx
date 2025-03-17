@@ -98,7 +98,7 @@ function draw() {
     const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos, undefined);
     const numSketches = addedFuncs.map((x) => x.length);
     setNumSketches(numSketches);
-    const totalNumSketches = numSketches.flat().reduce((d, i) => d + i)
+    const totalNumSketches = numSketches.flat().reduce((d, i) => d + i, 0)
     
     const newStateArray: StateObject[] = [];
     newStateArray.push({
