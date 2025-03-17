@@ -118,11 +118,16 @@ export function perturb(
   let possibleCodes: string[][] = [];
   let addedFuncs: string[][] = [];
   let lines: Loc[][] = [];
+
   let ast: parser.ParseResult<t.File>;
   try {
     ast = parser.parse(code);
-  } catch {
-    console.error('error parsing code')
+  } catch (err: any) {
+    console.log(
+        `%cSyntax error:%c ${err.message}`,
+        "color: #CC0000; font-weight: bold",
+        "color: #CC0000; font-weight: normal",
+    );
     return {possibleCodes, addedFuncs, lines}
   }
 

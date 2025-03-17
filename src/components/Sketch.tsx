@@ -60,29 +60,30 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
     <html>`
   }
 
-  const iframeRef = useRef<HTMLIFrameElement>(null);
   let src_code = generateSrcDoc(state.sketchCode)
-  
-  useEffect(() => {
-    if (!iframeRef.current) return;
 
-    const iframe = iframeRef.current;
+  // const iframeRef = useRef<HTMLIFrameElement>(null);
+  // 
+  // useEffect(() => {
+  //   if (!iframeRef.current) return;
 
-    const handleLoad = () => {
-      // Check if the iframe's contentDocument is accessible
-      // and whether it contains any error messages
-      if (iframe.contentDocument?.querySelector("body script[src^='chrome-error://']")) {
-        setHasError(true);
-        console.error("error in iframe")
-      }
-    };
+  //   const iframe = iframeRef.current;
 
-    iframe.addEventListener("load", handleLoad);
+  //   const handleLoad = () => {
+  //     // Check if the iframe's contentDocument is accessible
+  //     // and whether it contains any error messages
+  //     if (iframe.contentDocument?.querySelector("body script[src^='chrome-error://']")) {
+  //       setHasError(true);
+  //       console.error("error in iframe")
+  //     }
+  //   };
 
-    return () => {
-      iframe.removeEventListener("load", handleLoad);
-    };
-  }, []);
+  //   iframe.addEventListener("load", handleLoad);
+
+  //   return () => {
+  //     iframe.removeEventListener("load", handleLoad);
+  //   };
+  // }, []);
 
   return (
     <div style={{}}>
@@ -92,9 +93,19 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
         <iframe 
             onLoad={(e) => {
               const iframe = e.currentTarget;
-              if (iframe.contentWindow?.document.body) {
-                iframe.style.height = iframe.contentWindow.document.body.scrollHeight+20 + "px";
-                iframe.style.width = iframe.contentWindow.document.body.scrollWidth+20 + "px";
+              const w = iframe.contentWindow!;
+
+              w.onerror = function (message) {
+                  console.log(
+                      `%cRuntime error:%c ${message}`,
+                      "color: #CC0000; font-weight: bold",
+                      "color: #CC0000; font-weight: normal",
+                  );
+              }
+
+              if (w.document.body) {
+                iframe.style.height = w.document.body.scrollHeight+20 + "px";
+                iframe.style.width = w.document.body.scrollWidth+20 + "px";
               }
             }}
             style={{height:"300px", width:"100%", border: "none", overflow: "hidden"}}
