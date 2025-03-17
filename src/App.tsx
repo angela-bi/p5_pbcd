@@ -31,30 +31,38 @@ function App() {
   // number of sketches per row should be the number of parameters in a function
   // when user first enters page, there should only be one sketch
 
-  const localStateArray = localStorage.getItem("stateArray");
-  const localNumSketches = localStorage.getItem("numSketches");
+  const localSavedCode = localStorage.getItem("savedCode");
 
-  const [initialStateArray, initialNumSketches] : [StateObject[], number[]] =
-      localStateArray && localNumSketches ?
-      [JSON.parse(localStateArray), JSON.parse(localNumSketches)] :
-      [[], []]
+  const defaultSketchCode = localSavedCode ?
+      JSON.parse(localSavedCode) :
+      `function setup() {
+  createCanvas(300, 300);
+}
+function draw() {
+  background(220);
+  fill(0, 0, 0, 0)
+  ellipse(50, 50, 50, 50);
+}`;
 
-  const [stateArray, _setStateArray] = useState<StateObject[]>(initialStateArray);
-  const [numSketches, _setNumSketches] = useState<number[]>(initialNumSketches);
+  const [stateArray, _setStateArray] = useState<StateObject[]>([]);
+  const [numSketches, setNumSketches] = useState<number[]>([]);
   const [lastClicked, setLastClicked] = useState<number>(114);
+  const [currentEditorCode, _setCurrentEditorCode] = useState(defaultSketchCode)
 
   function setStateArray(
       arg: StateObject[] | ((_: StateObject[]) => StateObject[])
   ) {
       _setStateArray(arg);
-      localStorage.setItem("stateArray", JSON.stringify(stateArray));
+      if (stateArray && stateArray.length > 0) {
+          localStorage.setItem("savedCode", JSON.stringify(stateArray[0]));
+      }
   }
 
-  function setNumSketches(
-      arg: number[] | ((_ : number[]) => number[])
+  function setCurrentEditorCode(
+      arg: string | ((_: string) => string)
   ) {
-      _setNumSketches(arg);
-      localStorage.setItem("numSketches", JSON.stringify(numSketches));
+      _setCurrentEditorCode(arg);
+      localStorage.setItem("savedCode", JSON.stringify(currentEditorCode));
   }
 
   const updateStateProperty = <K extends keyof StateObject>(
@@ -69,15 +77,6 @@ function App() {
     );
     setStateArray((prevArray) => [...prevArray]); // to ensure update
   };
-
-  const defaultSketchCode = `function setup() {
-  createCanvas(300, 300);
-}
-function draw() {
-  background(220);
-  fill(0, 0, 0, 0)
-  ellipse(50, 50, 50, 50);
-}`;
 
   function getIndices(counter: number, nestedList: any[][]) {
     let i = 0;
@@ -94,9 +93,6 @@ function draw() {
   }
 
   useEffect(() => {
-    if (stateArray.length > 0) {
-        return;
-    }
     const curr_pos = {start: lastClicked, end: lastClicked} as Loc
     const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos, undefined);
     const numSketches = addedFuncs.map((x) => x.length);
@@ -121,17 +117,6 @@ function draw() {
   }, []);  
   
   const firstState = stateArray[0]
-
-  const [currentEditorCode, setCurrentEditorCode] = useState(`function setup() {
-  createCanvas(300, 300);
-  background(220);
-}
-
-function draw() {
-  fill(0, 0, 0, 0)
-  ellipse(50, 50, 50, 50);
-}
-`)
 
   return (
     <div className="App">
