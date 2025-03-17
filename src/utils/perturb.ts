@@ -21,7 +21,7 @@ export function path_contains_pos(path: NodePath<t.Node>, pos: Loc): boolean | n
 }
 
 // returns true if the path clicked is an argument of a function e.g. 50 or mouseX in ellipse(mouseX,50,50), else false
-function is_param(path: NodePath<t.Node>): boolean {
+export function is_param(path: NodePath<t.Node>): boolean {
   return path.listKey === "arguments"
 }
 
