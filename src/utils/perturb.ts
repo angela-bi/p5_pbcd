@@ -63,7 +63,6 @@ function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.No
           t.isCallExpression(clonedPath.node)
         ) {
           clonedPath.stop(); 
-          console.log(clonedPath)
           if (t.isCallExpression(clonedPath.node) && t.isIdentifier(clonedPath.node.callee)) {
             const callee = t.identifier(clonedPath.node.callee.name);
       
@@ -184,7 +183,6 @@ export function perturb(
                               if (func.paired_commands && func.paired_commands!.length > 0) {
                                 for (let i=0; i < func.paired_commands.length; i++) {
                                   const paired_command = createCommand(func.paired_commands[i], commands)
-                                  console.log(func.paired_commands[i], paired_command)
                                   const callee = t.identifier(commands[i].name);
                                   const params = [] as t.Expression[];
                                   if (paired_command!.num_params > 0) {
@@ -260,6 +258,5 @@ export function perturb(
         },
       });
   }
-  console.log(possibleCodes)
   return { possibleCodes, addedFuncs, lines };
 }

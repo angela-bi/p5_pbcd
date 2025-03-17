@@ -17,7 +17,6 @@ export const Button: React.FC<ButtonProps> = ({ code, currentEditorCode, updateS
     <div>
         <IconButton aria-label="play" onClick={() => {
           // ref = document.querySelector('iframe')?.contentWindow?.document;
-          console.log('button pressed, currentEditorCode: ', currentEditorCode)
           updateState(0, "sketchCode", currentEditorCode)
         }}>
         <PlayArrowIcon/>

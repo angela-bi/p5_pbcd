@@ -43,7 +43,6 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
         counter += 1
       }
     }
-    console.log('stateArray after sketch click: ',stateArray)
   };  
 
   const generateSrcDoc = (sketch: string) => {
