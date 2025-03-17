@@ -85,7 +85,7 @@ function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.No
             possibleCode.push(generate(clonedAst).code);
             line.push({ start: curr_pos.start, end: curr_pos.end });
 
-            for (let j=0; j<operators.length; j++) {
+            for (let j=0; j < operators.length; j++) {
               const updatedArgs = clonedPath.node.arguments.map((arg, index) => {
                 if (
                   !t.isNumericLiteral(arg)
@@ -109,7 +109,48 @@ function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.No
   return { addedFunc, possibleCode, line}
 }
 
+// Takes in the current code and position and returns three arrays of the same
+// size, each entry in the arrays corresponds to one row of the output, and each
+// entry in the row arrays corresponds to a single sketch. The individual
+// entries are as follows:
+// 1. First array: The whole program (possible code)
+// 2. The function to be added
+// 3. The line to add the function on
 export function perturb(
+    code: string,
+    currPos: Loc,
+) : {
+    possibleCodes: string[][],
+    addedFuncs: string[][],
+    lines: Loc[][]
+} {
+  let possibleCodes: string[][] = [];
+  let addedFuncs: string[][] = [];
+  let lines: Loc[][] = [];
+
+  let ast: parser.ParseResult<t.File>;
+  try {
+    ast = parser.parse(code);
+  } catch (err: any) {
+    console.log(
+        `%cSyntax error:%c ${err.message}`,
+        "color: #CC0000; font-weight: bold",
+        "color: #CC0000; font-weight: normal",
+    );
+    return {possibleCodes, addedFuncs, lines}
+  }
+
+  const index = currPos.start;
+
+  console.log(currPos);
+  possibleCodes.push(["x = 1"]);
+  addedFuncs.push(["xyz"]);
+  lines.push([{start: -1, end: -1}])
+
+  return {possibleCodes, addedFuncs, lines};
+}
+
+export function _perturb(
   code: string,
   currPos: Loc,
 ) {

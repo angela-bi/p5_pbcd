@@ -167,7 +167,11 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       return parser.parse(text);
     }catch(e){
       const result = (e as Error).message;
-      console.log(result)
+      console.log(
+          `%cSyntax error:%c ${result}`,
+          "color: #CC0000; font-weight: bold",
+          "color: #CC0000; font-weight: normal",
+      );
     }
   }
 
@@ -176,7 +180,6 @@ function setStyle(path: NodePath, decorations: any[]){
       start: path.node.start!,
       end: path.node.end!
     }
-    console.log(styleLoc)
     const highlight_decoration = Decoration.mark({
       attributes: {
           style: `background-color: #f783eb44; opacity: 0.5`
@@ -196,7 +199,6 @@ function setStyle(path: NodePath, decorations: any[]){
         const text = state.doc.toString()
       
         let ast = parseCode(text)!
-        console.log(ast)
         
         traverse(ast, {
           enter(path) {
