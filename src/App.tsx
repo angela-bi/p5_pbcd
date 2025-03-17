@@ -22,6 +22,7 @@ export interface StateObject {
   lineInserted?: Loc;
 }
 
+// Escape hatch if state gets messed up
 const _window = window as any;
 _window.resetInterface = () => {
   localStorage.clear();
@@ -154,6 +155,7 @@ function draw() {
                       setNumSketches={setNumSketches}
                       setLastClicked={setLastClicked}
                       lastClicked={lastClicked}
+                      key={crypto.randomUUID()}
                     />)
                   }
                   })}

@@ -53,6 +53,7 @@ export const SketchRow: React.FC<SketchRowProps> = ({updateState, stateArray, in
           setNumSketches={setNumSketches}
           setLastClicked={setLastClicked}
           lastClicked={lastClicked}
+          key={crypto.randomUUID()}
         />)
       })}
       <Divider></Divider>
