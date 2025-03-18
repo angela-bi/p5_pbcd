@@ -42,16 +42,16 @@ export const SketchRow: React.FC<SketchRowProps> = ({updateState, stateArray, in
       <div>
           {sketches.map((state) => {
             return (
-            <Sketch
-              stateArray={stateArray}
-              state={state}
-              code={state.sketchCode}
-              updateState={updateState}
-              setNumSketches={setNumSketches}
-              setLastClicked={setLastClicked}
-              lastClicked={lastClicked}
-              key={crypto.randomUUID()}
-            />)
+                <Sketch
+                  stateArray={stateArray}
+                  state={state}
+                  code={state.sketchCode}
+                  updateState={updateState}
+                  setNumSketches={setNumSketches}
+                  setLastClicked={setLastClicked}
+                  lastClicked={lastClicked}
+                  key={crypto.randomUUID()}
+                />)
           })}
       </div>
     </div>

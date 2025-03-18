@@ -143,7 +143,6 @@ body {
     color: #000;
 }
 
-
 /* Output pane */
 
 #output-pane .sketch {
@@ -201,18 +200,26 @@ body {
     background-color: #FFFFFF;
 }
 
+.sketch .iframe-wrapper {
+    display: flex;
+    overflow: hidden;
+}
+
 .sketch iframe {
     border-radius: 5px;
 }
 
 .sketch-row .sketch iframe {
     border-radius: 5px 5px 0 0;
+    transform: scale(0.5, 0.5);
+    transform-origin: 0 0;
 }
 
 .sketch-row .sketch {
     margin: 10px 10px 20px 0px;
     cursor: pointer !important;
     transition: all 0.3s;
+    box-sizing: content-box;
 }
 
 .sketch-row .sketch:hover {

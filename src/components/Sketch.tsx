@@ -72,6 +72,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
 
   return (
     <div className="sketch" onClick={handleClick}>
+      <div className="iframe-wrapper">
         <iframe
             onLoad={(e) => {
               const iframe = e.currentTarget;
@@ -88,8 +89,20 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
               };
 
               if (w.document.body) {
-                iframe.style.height = (w.document.body.scrollHeight - 6) + "px";
-                iframe.style.width = w.document.body.scrollWidth + "px";
+                const width = w.document.body.scrollWidth;
+                const height = w.document.body.scrollHeight - 6;
+
+                iframe.style.width = width + "px";
+                iframe.style.height = height + "px";
+
+                document.querySelectorAll(".sketch-row .iframe-wrapper").forEach((el: any) => {
+                    el.style.width = (width / 2) + "px";
+                    el.style.height = (height / 2) + "px";
+                });
+
+                document.querySelectorAll(".sketch-row .sketch").forEach((el: any) => {
+                    el.style.width = (width / 2) + "px";
+                });
 
                 if (state.addedFunction) {
                     w.document.body.classList.add("selectable");
@@ -99,6 +112,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
             srcDoc={src_code}
             title={state.addedFunction}
           />
+        </div>
         { state.addedFunction &&
             <h4 className="added-function">
                 {state.addedFunction}
