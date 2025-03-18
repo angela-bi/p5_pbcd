@@ -18,8 +18,7 @@ export interface StateObject {
 }
 
 // Escape hatch if state gets messed up
-const _window = window as any;
-_window.resetInterface = () => {
+(window as any).resetInterface = () => {
   localStorage.clear();
   window.location.reload();
 }
