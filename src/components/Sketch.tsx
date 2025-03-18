@@ -78,6 +78,10 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
               const iframe = e.currentTarget;
               const w = iframe.contentWindow!;
 
+              if (iframe.closest(".sketch-row") == null) {
+                  (window as any).sketch = w;
+              }
+
               w.onclick = function () { handleClick() };
 
               w.onerror = function (message) {
