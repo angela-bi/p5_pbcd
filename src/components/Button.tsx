@@ -12,15 +12,13 @@ interface ButtonProps {
     // startSketch: (index: number, code: string) => void
   }
 
-export const Button: React.FC<ButtonProps> = ({ code, currentEditorCode, updateState, stateArray}) => {
-  return (
-    <div>
-        <IconButton aria-label="play" onClick={() => {
-          // ref = document.querySelector('iframe')?.contentWindow?.document;
-          updateState(0, "sketchCode", currentEditorCode)
-        }}>
-        <PlayArrowIcon/>
-        </IconButton>
-    </div>
-  )
+export const Button: React.FC<ButtonProps> =
+    ({ code, currentEditorCode, updateState, stateArray}) => {
+        return (
+            <button className="run-button" onClick={() => {
+                updateState(0, "sketchCode", currentEditorCode)
+            }}>
+                ▶
+            </button>
+        )
 }

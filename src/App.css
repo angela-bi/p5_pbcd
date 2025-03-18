@@ -1,0 +1,188 @@
+/* Main */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --bg-color: #ffffff;
+    --fg-color: #333333;
+    --fade-color: rgb(166, 166, 166);
+    --accent-bg: #ed225d;
+    --accent-bg-2: #f690ad;
+    --accent-fg: #ffffff;
+
+    --left-width: 600px;
+    --fadeout-distance: 50px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Montserrat", sans-serif;
+    margin: 0;
+
+    /* Courtesy of https://css-pattern.com/ */
+
+    --s: 192px; /* control the size*/
+    --c1: #ffffff;
+    --c2: #fde1e9;
+
+    --_g:
+        var(--c1) 0%  5% ,var(--c2) 6%  15%,var(--c1) 16% 25%,var(--c2) 26% 35%,var(--c1) 36% 45%,
+        var(--c2) 46% 55%,var(--c1) 56% 65%,var(--c2) 66% 75%,var(--c1) 76% 85%,var(--c2) 86% 95%,
+        #0000 96%;
+
+    background:
+        radial-gradient(50% 50% at 100% 0,var(--_g)),
+        radial-gradient(50% 50% at 0 100%,var(--_g)),
+        radial-gradient(50% 50%,var(--_g)),
+        radial-gradient(50% 50%,var(--_g)) calc(var(--s)/2) calc(var(--s)/2)
+        var(--c1);
+
+    background-size: var(--s) var(--s);
+    background-attachment: fixed;
+}
+
+/* App */
+
+.App {
+    padding: 20px 0 0 20px;
+}
+
+.App > div {
+    /* background-color: rgb(245, 245, 245); */
+    background-color: #FFFFFF;
+    border: 1.5px solid #4c061a;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+#left {
+    width: var(--left-width);
+    position: fixed;
+}
+
+#right {
+    float: left;
+    margin-left: calc(var(--left-width) + 20px);
+    width: calc(100% - var(--left-width) - 40px);
+    margin-bottom: 20px;
+}
+
+/* Toolbar */
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.toolbar h2 {
+    height: 30px;
+    line-height: 30px;
+    font-size: 1.4em;
+    font-weight: 600;
+}
+
+.toolbar h2 span {
+    font-weight: normal;
+}
+
+.toolbar .run-button {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    font-size: 1em;
+    background-color: var(--accent-bg);
+    color: var(--accent-fg);
+    cursor: pointer;
+}
+
+/* Editor */
+
+.cm-editor {
+    margin-bottom: 20px;
+    border: 1.5px solid #DDDDDD;
+}
+
+.cm-focused {
+    outline: none !important;
+}
+
+/* Output pane */
+
+#output-pane .sketch {
+    display: inline-flex;
+}
+
+/* Sketch rows */
+
+.sketch-row {
+    border-top: 1px dashed var(--fade-color);
+    padding-top: 10px;
+    position: relative;
+}
+
+.sketch-row::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: var(--fadeout-distance);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+}
+
+.sketch-row > div {
+    display: flex;
+    overflow-x: scroll;
+}
+
+.sketch-row h3 {
+    font-size: 1.2em;
+    margin: 5px 0;
+}
+
+/* Sketches */
+
+.sketch {
+    border: 1px solid var(--fade-color);
+    border-radius: 5px;
+    background-color: #FFFFFF;
+}
+
+.sketch iframe {
+    border-radius: 5px;
+}
+
+.sketch-row .sketch iframe {
+    border-radius: 5px 5px 0 0;
+}
+
+.sketch-row .sketch {
+    margin: 10px 10px 20px 10px;
+    cursor: pointer !important;
+    transition: all 0.3s;
+}
+
+.sketch-row .sketch:hover {
+    border: 3px solid var(--accent-bg);
+    transition: all 0.3s;
+    box-shadow: 0 0 5px var(--fade-color);
+}
+
+.sketch .added-function {
+    text-align: left;
+    width: 100%;
+    font-family: monospace;
+    font-size: 0.9em;
+    padding: 5px;
+}
+
+.sketch-row .sketch:last-child {
+    margin-right: var(--fadeout-distance);
+}
+

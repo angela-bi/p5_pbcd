@@ -1,7 +1,6 @@
 import React from 'react'
 import Grid from '@mui/material/Grid2';
 import { Divider, Typography } from '@mui/material';
-<Typography>Code</Typography>
 
 export const Header = () => {
   return (

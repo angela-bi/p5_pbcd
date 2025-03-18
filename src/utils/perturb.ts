@@ -116,7 +116,7 @@ function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.No
 // 1. First array: The whole program (possible code)
 // 2. The function to be added
 // 3. The line to add the function on
-export function perturb(
+export function _perturb(
     code: string,
     currPos: Loc,
 ) : {
@@ -150,7 +150,7 @@ export function perturb(
   return {possibleCodes, addedFuncs, lines};
 }
 
-export function _perturb(
+export function perturb(
   code: string,
   currPos: Loc,
 ) {

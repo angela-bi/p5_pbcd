@@ -4,7 +4,6 @@ import * as t from "@babel/types";
 import * as parser from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
-import { Stack, Button, Divider } from '@mui/material';
 import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../utils/check_commands'
 import { perturb } from '../utils/perturb';
 
@@ -50,6 +49,16 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
     <!doctype html>
       <head>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js" onerror="function() {alert('Error loading ' + this.src);};"></script>
+        <style>
+          body {
+            margin: 0;
+            overflow: hidden;
+          }
+
+          .selectable {
+            cursor: pointer;
+          }
+        </style>
       </head>
       <body>
         <script>
@@ -61,38 +70,14 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
 
   let src_code = generateSrcDoc(state.sketchCode)
 
-  // const iframeRef = useRef<HTMLIFrameElement>(null);
-  // 
-  // useEffect(() => {
-  //   if (!iframeRef.current) return;
-
-  //   const iframe = iframeRef.current;
-
-  //   const handleLoad = () => {
-  //     // Check if the iframe's contentDocument is accessible
-  //     // and whether it contains any error messages
-  //     if (iframe.contentDocument?.querySelector("body script[src^='chrome-error://']")) {
-  //       setHasError(true);
-  //       console.error("error in iframe")
-  //     }
-  //   };
-
-  //   iframe.addEventListener("load", handleLoad);
-
-  //   return () => {
-  //     iframe.removeEventListener("load", handleLoad);
-  //   };
-  // }, []);
-
   return (
-    <div style={{}}>
-      {(!state.displayName || state.addedFunction) && 
-      <div style={{ display: 'flex', width: 'fit-content', height: 'fit-content', overflow: 'hidden' }} onClick={handleClick}>
-        <Stack>
-        <iframe 
+    <div className="sketch" onClick={handleClick}>
+        <iframe
             onLoad={(e) => {
               const iframe = e.currentTarget;
               const w = iframe.contentWindow!;
+
+              w.onclick = function () { handleClick() };
 
               w.onerror = function (message) {
                   console.log(
@@ -100,21 +85,25 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
                       "color: #CC0000; font-weight: bold",
                       "color: #CC0000; font-weight: normal",
                   );
-              }
+              };
 
               if (w.document.body) {
-                iframe.style.height = w.document.body.scrollHeight+20 + "px";
-                iframe.style.width = w.document.body.scrollWidth+20 + "px";
+                iframe.style.height = (w.document.body.scrollHeight - 6) + "px";
+                iframe.style.width = w.document.body.scrollWidth + "px";
+
+                if (state.addedFunction) {
+                    w.document.body.classList.add("selectable");
+                }
               }
             }}
-            style={{height:"300px", width:"100%", border: "none", overflow: "hidden"}}
             srcDoc={src_code}
-            title={state.addedFunction} 
+            title={state.addedFunction}
           />
-          <Button color="inherit" size='small' style={{textTransform: 'none'}} >{state.addedFunction}</Button>
-        </Stack>
-      </div>
-      }
+        { state.addedFunction &&
+            <h4 className="added-function">
+                {state.addedFunction}
+            </h4>
+        }
     </div>
   );
 };

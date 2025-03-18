@@ -1,17 +1,12 @@
 import React, { useState, useRef } from 'react';
+import './reset.css'
 import './App.css';
 import { Sketch } from './components/Sketch';
 import { Editor } from './components/Editor';
 import { Button } from './components/Button';
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid2';
 import { useEffect } from 'react';
-import { Divider, Stack, Typography } from '@mui/material';
 import SketchRow from './components/SketchRow';
 import { Loc, perturb } from './utils/perturb';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import { Header } from './components/Header';
 // import { Console } from './components/Console';
 
 export interface StateObject {
@@ -95,6 +90,8 @@ function draw() {
   }
 
   useEffect(() => {
+    document.title = "CODP";
+
     const curr_pos = {start: lastClicked, end: lastClicked} as Loc
     const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos);
     const numSketches = addedFuncs.map((x) => x.length);
@@ -122,71 +119,74 @@ function draw() {
 
   return (
     <div className="App">
-      <Box>
-        <Stack>
-        <Header/>
-        <Grid container spacing={2}>
-            {firstState && (
-              <Grid size={3}>
-                <Button
-                code={firstState.sketchCode}
-                currentEditorCode={currentEditorCode}
-                updateState={updateStateProperty}
-                stateArray={stateArray}
-                />
-                <Editor
-                code={firstState.sketchCode}
-                setCurrentEditorCode={setCurrentEditorCode}
-                updateState={updateStateProperty}
-                stateArray={stateArray}
-                setNumSketches={setNumSketches}
-                setLastClicked={setLastClicked}
-                />
-                <div>
-                {/* <Console></Console> */}
-                  {stateArray.map((state, index) => {
-                  if (index === 0) {
-                    return (
-                    <Sketch
-                      stateArray={stateArray}
-                      state={state}
-                      code={state.sketchCode}
-                      updateState={updateStateProperty}
-                      setNumSketches={setNumSketches}
-                      setLastClicked={setLastClicked}
-                      lastClicked={lastClicked}
-                      key={crypto.randomUUID()}
-                    />)
-                  }
-                  })}
+      <div id="left">
+        {firstState && (
+            <div id="editor-pane">
+                <div className="toolbar">
+                    <h2>Sketch</h2>
+                    <Button
+                        code={firstState.sketchCode}
+                        currentEditorCode={currentEditorCode}
+                        updateState={updateStateProperty}
+                        stateArray={stateArray} />
                 </div>
-              </Grid>
-            )}
-          <Grid size={9} style={{
-        borderStyle: 'solid',
-        borderColor: 'rgba(0, 0, 0, 0.12)',
-        borderWidth: '0 0 0 1px'
-      }}>
-            <div style={{ maxHeight: "100vh", overflowY: "auto" }}>
-              {numSketches.map((num, index) => ( // where num is the number of sketches per row and index is the ith row
-                  <Stack key={index}>
-                    <SketchRow
-                      updateState={updateStateProperty}
-                      stateArray={stateArray}
-                      numSketches={numSketches}
-                      setNumSketches={setNumSketches}
-                      index={index}
-                      setLastClicked={setLastClicked}
-                      lastClicked={lastClicked}
-                    />
-                  </Stack>
-              ))}
+                <Editor
+                    code={firstState.sketchCode}
+                    setCurrentEditorCode={setCurrentEditorCode}
+                    updateState={updateStateProperty}
+                    stateArray={stateArray}
+                    setNumSketches={setNumSketches}
+                    setLastClicked={setLastClicked} />
             </div>
-          </Grid>
-        </Grid>
-        </Stack>
-      </Box>
+        )}
+        <div id="output-pane">
+          <div className="toolbar">
+              <h2>Preview</h2>
+          </div>
+          {
+            stateArray.map((state, index) => {
+              if (index === 0) {
+                return (
+                    <Sketch
+                          stateArray={stateArray}
+                          state={state}
+                          code={state.sketchCode}
+                          updateState={updateStateProperty}
+                          setNumSketches={setNumSketches}
+                          setLastClicked={setLastClicked}
+                          lastClicked={lastClicked}
+                          key={crypto.randomUUID()} />)
+              }
+            })
+          }
+        </div>
+      </div>
+      <div id="right">
+        <div id="possibilities-pane">
+          <div className="toolbar">
+              <h2>Possibilities <span>(Scroll right or down!)</span></h2>
+          </div>
+          <div>
+              {
+                  // where num is the number of sketches per row and index is the ith row
+                  numSketches.map((num, index) => (
+                      <div key={index}>
+                        <SketchRow
+                          updateState={updateStateProperty}
+                          stateArray={stateArray}
+                          numSketches={numSketches}
+                          setNumSketches={setNumSketches}
+                          index={index}
+                          setLastClicked={setLastClicked}
+                          lastClicked={lastClicked}
+                        />
+                    </div>
+                  ))
+              }
+          </div>
+        </div>
+      </div>
     </div>
   );}
-  
+
 export default App;
