@@ -148,12 +148,12 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       newPrograms.forEach((insertion) => {
 
         if (insertion.index in programsWithTitles) {
-          programsWithTitles[insertion.index] = 1
+          programsWithTitles[insertion.index]++
         } else {
-          programsWithTitles[insertion.index] = programsWithTitles[insertion.index]++
+          programsWithTitles[insertion.index] = 1
         }
       })
-      const numSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key].length)
+      const numSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key])
       setNumSketches(numSketches);
 
       let counter = 1
