@@ -90,7 +90,7 @@ function draw() {
   }
 
   useEffect(() => {
-    document.title = "CODP";
+    document.title = "p5.js Web Editor";
 
     const curr_pos = {start: lastClicked, end: lastClicked} as Loc
     const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos);
