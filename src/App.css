@@ -210,7 +210,7 @@ body {
 }
 
 .sketch-row .sketch {
-    margin: 10px 10px 20px 10px;
+    margin: 10px 10px 20px 0px;
     cursor: pointer !important;
     transition: all 0.3s;
 }
