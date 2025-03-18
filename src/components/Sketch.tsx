@@ -4,7 +4,12 @@ import * as t from "@babel/types";
 import * as parser from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
+<<<<<<< Updated upstream
 import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../utils/check_commands'
+=======
+import { Stack, Button, Divider } from '@mui/material';
+import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, getCommand } from '../utils/check_commands'
+>>>>>>> Stashed changes
 import { perturb } from '../utils/perturb';
 
 
@@ -18,10 +23,10 @@ interface SketchProps {
   lastClicked: number;
 }
 
-export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateArray, setNumSketches, setLastClicked, lastClicked }) => {
-  const [dims, setDims] = useState<string[]>(['320px','320px']);
+export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateArray, setNumSketches, setLastClicked, lastClicked }) => {
+  const [dims, setDims] = useState<string[]>(['320px', '320px']);
   const [hasError, setHasError] = useState<boolean>(false);
-  
+
   const handleClick = () => { // find out how to log what was clicked
     try {
       updateState(0, "sketchCode", code);
@@ -29,20 +34,20 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
       console.error('couldnt update state', e)
     }
 
-    const { possibleCodes, addedFuncs, lines } = perturb(code, state.lineInserted!);
-    const numSketches = addedFuncs.filter(x => x.length > 0).map((x) => x.length);
-    setNumSketches(numSketches);
+    // const { possibleCodes, addedFuncs, lines } = perturb(code, state.lineInserted!);
+    // const numSketches = addedFuncs.filter(x => x.length > 0).map((x) => x.length);
+    // setNumSketches(numSketches);
 
-    let counter = 0
-    for (let i = 0; i < possibleCodes.length; i++) {
-      for (let j = 0; j < possibleCodes[i].length; j++) {
-        updateState(counter+1, "sketchCode", possibleCodes[i][j])
-        updateState(counter+1, "addedFunction", addedFuncs[i][j])
-        updateState(counter+1, 'lineInserted', lines[i][j])
-        counter += 1
-      }
-    }
-  };  
+    // let counter = 0
+    // for (let i = 0; i < possibleCodes.length; i++) {
+    //   for (let j = 0; j < possibleCodes[i].length; j++) {
+    //     updateState(counter + 1, "sketchCode", possibleCodes[i][j])
+    //     updateState(counter + 1, "addedFunction", addedFuncs[i][j])
+    //     updateState(counter + 1, 'lineInserted', lines[i][j])
+    //     counter += 1
+    //   }
+    // }
+  };
 
   const generateSrcDoc = (sketch: string) => {
     return `
@@ -71,6 +76,7 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
   let src_code = generateSrcDoc(state.sketchCode)
 
   return (
+<<<<<<< Updated upstream
     <div className="sketch" onClick={handleClick}>
       <div className="iframe-wrapper">
         <iframe
@@ -85,11 +91,24 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
               w.onclick = function () { handleClick() };
 
               w.onerror = function (message) {
+=======
+    <div style={{}}>
+      {(!state.displayName || state.addedFunction) &&
+        <div style={{ display: 'flex', width: 'fit-content', height: 'fit-content', overflow: 'hidden' }} onClick={handleClick}>
+          <Stack>
+            <iframe
+              onLoad={(e) => {
+                const iframe = e.currentTarget;
+                const w = iframe.contentWindow!;
+
+                w.onerror = function (message) {
+>>>>>>> Stashed changes
                   console.log(
-                      `%cRuntime error:%c ${message}`,
-                      "color: #CC0000; font-weight: bold",
-                      "color: #CC0000; font-weight: normal",
+                    `%cRuntime error:%c ${message}`,
+                    "color: #CC0000; font-weight: bold",
+                    "color: #CC0000; font-weight: normal",
                   );
+<<<<<<< Updated upstream
               };
 
               if (w.document.body) {
@@ -122,6 +141,23 @@ export const Sketch: React.FC<SketchProps> = ({state, code, updateState, stateAr
                 {state.addedFunction}
             </h4>
         }
+=======
+                }
+
+                if (w.document.body) {
+                  iframe.style.height = w.document.body.scrollHeight + 20 + "px";
+                  iframe.style.width = w.document.body.scrollWidth + 20 + "px";
+                }
+              }}
+              style={{ height: "300px", width: "100%", border: "none", overflow: "hidden" }}
+              srcDoc={src_code}
+              title={state.addedFunction}
+            />
+            <Button color="inherit" size='small' style={{ textTransform: 'none' }} >{state.addedFunction}</Button>
+          </Stack>
+        </div>
+      }
+>>>>>>> Stashed changes
     </div>
   );
 };

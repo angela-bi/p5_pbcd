@@ -1,3 +1,4 @@
+import { commands, params, operators } from './commands'
 export type ConstructorNames = "ellipse" | "circle" | "vertex" | "fillPair" | "shapePair"
 export type ModifierNames = "fill" | "beginShape"
 export type CommandName = ConstructorNames | ModifierNames
@@ -5,15 +6,15 @@ export type InsertDirection = "Above" | "Below"
 
 export type Command = {
     name: string
-	valid: string[]
-	invalid: string[]
-	default_valid: Boolean
+    valid: string[]
+    invalid: string[]
+    default_valid: Boolean
     direction: InsertDirection | null
     paired_commands?: string[] // can use this in logic
     num_params: number
 }
 
-export function checkValidity( hoverCommand: Command, validCommand: Command): InsertDirection | null {
+export function checkValidity(hoverCommand: Command, validCommand: Command): InsertDirection | null {
     // hoverCommand is what our cursor is on
     // trying to check validity of validCommand
     const VCisValid = validCommand.valid.includes(hoverCommand.name)
@@ -26,14 +27,15 @@ export function checkValidity( hoverCommand: Command, validCommand: Command): In
     }
 }
 
-export function checkCommands( hoverCommand: Command, commands: Command[]) {
+export function checkCommands(hoverCommand: Command) {
     return commands.map(command => checkValidity(hoverCommand, command))
 }
 
-export function createCommand(functionName: string, commands: Command[]) {
+export function getCommand(functionName: string) {
+
     for (var c of commands) {
-      if (c.name == functionName) {
-        return c
-      }
+        if (c.name === functionName) {
+            return c
+        }
     }
-  }
+}

@@ -46,7 +46,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
 
         while (start > from && /\w/.test(text[start - from - 1])) start--;
         while (end < to && /\w/.test(text[end - from])) end++;
-      
+
         return {
           pos: start,
           end,
@@ -142,81 +142,102 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     }
 
     try {
-      const clicked_pos = {start: curr_pos, end: curr_pos} as Loc;
-      const { possibleCodes, addedFuncs, lines } = perturb(code, clicked_pos);
-      const numSketches = addedFuncs.filter(x => x.length > 0).map(x => x.length);
+      const clicked_pos = { start: curr_pos, end: curr_pos } as Loc;
+      const newPrograms = perturb(code, clicked_pos);
+      const programsWithTitles: any = {}
+      newPrograms.forEach((insertion) => {
+
+        if (insertion.index in programsWithTitles) {
+          programsWithTitles[insertion.index] = 1
+        } else {
+          programsWithTitles[insertion.index] = programsWithTitles[insertion.index]++
+        }
+      })
+      const numSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key].length)
       setNumSketches(numSketches);
 
       let counter = 1
-      for (let i = 0; i < possibleCodes.length; i++) {
-        for (let j = 0; j < possibleCodes[i].length; j++) {
-          updateState(counter, "sketchCode", possibleCodes[i][j])
-          updateState(counter, "addedFunction", addedFuncs[i][j])
-          updateState(counter+1, 'lineInserted', lines[i][j])
-          counter += 1
-        }
-      }
+      newPrograms.forEach((insertion) => {
+        updateState(counter, "sketchCode", insertion.program)
+        updateState(counter, "addedFunction", insertion.index)
+        counter++
+      })
+      // for (let i = 0; i < possibleCodes.length; i++) {
+      //   for (let j = 0; j < possibleCodes[i].length; j++) {
+      //     updateState(counter, "sketchCode", possibleCodes[i][j])
+      //     updateState(counter, "addedFunction", addedFuncs[i][j])
+      //     // updateState(counter+1, 'lineInserted', lines[i][j])
+      //     counter += 1
+      //   }
+      // }
     } catch (error) {
       // if parsing error
       console.error("Error parsing the code:", error);
     }
 
   }
-  function parseCode(text:string){
+  function parseCode(text: string) {
     try {
       return parser.parse(text);
-    }catch(e){
+    } catch (e) {
       const result = (e as Error).message;
       console.log(
-          `%cSyntax error:%c ${result}`,
-          "color: #CC0000; font-weight: bold",
-          "color: #CC0000; font-weight: normal",
+        `%cSyntax error:%c ${result}`,
+        "color: #CC0000; font-weight: bold",
+        "color: #CC0000; font-weight: normal",
       );
     }
   }
 
-function setStyle(path: NodePath, decorations: any[]){
+  function setStyle(path: NodePath, decorations: any[]) {
     const styleLoc = {
       start: path.node.start!,
       end: path.node.end!
     }
     const highlight_decoration = Decoration.mark({
+<<<<<<< Updated upstream
       class: "cursor-selected",
+=======
+      attributes: {
+        style: `background-color: #f783eb44; opacity: 0.5`
+      }
+>>>>>>> Stashed changes
     })
-      decorations.push(
-        highlight_decoration.range(styleLoc.start,styleLoc.end)
+    decorations.push(
+      highlight_decoration.range(styleLoc.start, styleLoc.end)
     )
   }
   const highlight_extension = StateField.define<DecorationSet>({
     create() {
-        return Decoration.none
+      return Decoration.none
     },
     update(_value, transaction) {
-        let decorations: any[] = []
-        const { state } = transaction
-        const text = state.doc.toString()
-      
-        let ast = parseCode(text)!
-        
-        traverse(ast, {
-          enter(path) {
-            if (path_contains_pos(path, {start: cursorPosition, end: cursorPosition})){
-              if(is_param(path)){
-                setStyle(path,decorations)
-              }
-              if(t.isCallExpression(path.node)){
-                const callee = (path.node as t.CallExpression).callee
-                if(callee.start! <= cursorPosition && callee.end! >= cursorPosition){
-                  setStyle(path,decorations)
-                }
+      let decorations: any[] = []
+      const { state } = transaction
+      const text = state.doc.toString()
+
+      let ast = parseCode(text)!
+
+      traverse(ast, {
+        enter(path) {
+          if (path_contains_pos(path, { start: cursorPosition, end: cursorPosition })) {
+            if (is_param(path)) {
+              setStyle(path, decorations)
+            }
+            if (t.isCallExpression(path.node)) {
+              const callee = (path.node as t.CallExpression).callee
+              if (callee.start! <= cursorPosition && callee.end! >= cursorPosition) {
+                setStyle(path, decorations)
               }
             }
-          }})
-          return Decoration.set(decorations)
-          
+          }
+        }
+      })
+      return Decoration.set(decorations)
+
     },
     provide: (field) => EditorView.decorations.from(field)
-})
+  })
 
   const extensions = [
     // cursorTooltipField,
