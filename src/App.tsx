@@ -162,9 +162,9 @@ function draw() {
         </div>
       </div>
       <div id="right">
-        <div id="possibilities-pane">
+        <div id="possibilities-pane" data-has-sketches={numSketches.length > 0}>
           <div className="toolbar">
-              <h2>Possibilities <span>(Scroll right or down!)</span></h2>
+              <h2>Possibilities<span> (Scroll right or down!)</span></h2>
           </div>
           <div>
               {

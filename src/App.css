@@ -118,6 +118,21 @@ body {
     display: inline-flex;
 }
 
+/* Possibilities pane */
+
+#possibilities-pane[data-has-sketches="false"] .toolbar {
+    margin: 0;
+}
+
+#possibilities-pane[data-has-sketches="false"] .toolbar h2 {
+    height: auto;
+    line-height: auto;
+}
+
+#possibilities-pane[data-has-sketches="false"] h2 span {
+    display: none;
+}
+
 /* Sketch rows */
 
 .sketch-row {
