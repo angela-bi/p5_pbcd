@@ -91,7 +91,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
   });
 
   const highlightMark = Decoration.mark({
-    attributes: { style: "background-color: rgba(135,206,250, 0.5);" }
+      class: "cursor-hovered"
   });
   const handleEditorChange = (viewUpdate: ViewUpdate) => {
     const currentText = viewUpdate.state.doc.toString();
@@ -181,9 +181,7 @@ function setStyle(path: NodePath, decorations: any[]){
       end: path.node.end!
     }
     const highlight_decoration = Decoration.mark({
-      attributes: {
-          style: `background-color: #f783eb44; opacity: 0.5`
-      }
+      class: "cursor-selected",
     })
       decorations.push(
         highlight_decoration.range(styleLoc.start,styleLoc.end)

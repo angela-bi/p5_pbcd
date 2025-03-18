@@ -7,11 +7,15 @@
     --fg-color: #333333;
     --fade-color: rgb(166, 166, 166);
     --accent-bg: #ed225d;
-    --accent-bg-2: #f690ad;
+    --accent-bg2: #fde1e9;
+    --accent-bg3: #4c061a;
+    --accent-bg4: #f584a4;
     --accent-fg: #ffffff;
 
     --left-width: 600px;
     --fadeout-distance: 50px;
+
+    --cursor-highlight: red;
 }
 
 * {
@@ -26,7 +30,7 @@ body {
 
     --s: 192px; /* control the size*/
     --c1: #ffffff;
-    --c2: #fde1e9;
+    --c2: var(--accent-bg2);
 
     --_g:
         var(--c1) 0%  5% ,var(--c2) 6%  15%,var(--c1) 16% 25%,var(--c2) 26% 35%,var(--c1) 36% 45%,
@@ -53,7 +57,7 @@ body {
 .App > div {
     /* background-color: rgb(245, 245, 245); */
     background-color: #FFFFFF;
-    border: 1.5px solid #4c061a;
+    border: 1.5px solid var(--accent-bg3);
     padding: 20px;
     border-radius: 5px;
 }
@@ -83,7 +87,7 @@ body {
     height: 30px;
     line-height: 30px;
     font-size: 1.4em;
-    font-weight: 600;
+    font-weight: 650;
 }
 
 .toolbar h2 span {
@@ -106,11 +110,39 @@ body {
 .cm-editor {
     margin-bottom: 20px;
     border: 1.5px solid #DDDDDD;
+    font-size: 1.2em;
 }
 
 .cm-focused {
     outline: none !important;
 }
+
+.cm-activeLineGutter, .cm-activeLine {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Cursor */
+
+.cursor-hovered {
+    background-color: var(--accent-bg2);
+    color: #000;
+    font-weight: 500;
+}
+
+.cursor-hovered * {
+    color: #000;
+}
+
+.cursor-selected {
+    background-color: var(--accent-bg4);
+    color: #000;
+    font-weight: bold;
+}
+
+.cursor-selected * {
+    color: #000;
+}
+
 
 /* Output pane */
 
