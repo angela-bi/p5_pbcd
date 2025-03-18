@@ -180,12 +180,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     try {
       return parser.parse(text);
     } catch (e) {
-      const result = (e as Error).message;
-      console.log(
-        `%cSyntax error:%c ${result}`,
-        "color: #CC0000; font-weight: bold",
-        "color: #CC0000; font-weight: normal",
-      );
+      return null;
     }
   }
 
