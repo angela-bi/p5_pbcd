@@ -195,13 +195,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       end: path.node.end!
     }
     const highlight_decoration = Decoration.mark({
-<<<<<<< Updated upstream
       class: "cursor-selected",
-=======
-      attributes: {
-        style: `background-color: #f783eb44; opacity: 0.5`
-      }
->>>>>>> Stashed changes
     })
     decorations.push(
       highlight_decoration.range(styleLoc.start, styleLoc.end)

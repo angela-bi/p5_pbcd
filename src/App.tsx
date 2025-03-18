@@ -43,22 +43,36 @@ function draw() {
   const [stateArray, _setStateArray] = useState<StateObject[]>([]);
   const [numSketches, setNumSketches] = useState<number[]>([]);
   const [lastClicked, setLastClicked] = useState<number>(114);
-  const [currentEditorCode, _setCurrentEditorCode] = useState(defaultSketchCode)
+  const [currentEditorCode, _setCurrentEditorCode] = useState<string>(defaultSketchCode)
 
   function setStateArray(
     arg: StateObject[] | ((_: StateObject[]) => StateObject[])
   ) {
-    _setStateArray(arg);
-    if (stateArray && stateArray.length > 0) {
-      localStorage.setItem("savedCode", JSON.stringify(stateArray[0]));
-    }
+    _setStateArray((prevArg) => {
+        let newArg = typeof arg == "function" ? arg(prevArg) : arg;
+        if (newArg && newArg.length > 0 && newArg[0].currentEditorCode) {
+            localStorage.setItem(
+                "savedCode",
+                JSON.stringify(newArg[0].currentEditorCode)
+            );
+        }
+        return newArg;
+    });
   }
 
   function setCurrentEditorCode(
     arg: string | ((_: string) => string)
   ) {
-    _setCurrentEditorCode(arg);
-    localStorage.setItem("savedCode", JSON.stringify(currentEditorCode));
+    _setCurrentEditorCode((prevArg) => {
+        let newArg = typeof arg == "function" ? arg(prevArg) : arg;
+        if (newArg) {
+            localStorage.setItem(
+                "savedCode",
+                JSON.stringify(newArg)
+            );
+        }
+        return newArg;
+    });
   }
 
   const updateStateProperty = <K extends keyof StateObject>(
@@ -89,30 +103,25 @@ function draw() {
   }
 
   useEffect(() => {
-<<<<<<< Updated upstream
     document.title = "p5.js Web Editor";
 
-    const curr_pos = {start: lastClicked, end: lastClicked} as Loc
-    const { possibleCodes, addedFuncs, lines } = perturb(defaultSketchCode, curr_pos);
-    const numSketches = addedFuncs.map((x) => x.length);
-=======
     const curr_pos = { start: lastClicked, end: lastClicked } as Loc
     const newPrograms = perturb(defaultSketchCode, curr_pos);
 
     // newPrograms.sort((a, b) => { return a.index })
     const programsWithTitles: any = {}
     newPrograms.forEach((insertion) => {
-
       if (insertion.index in programsWithTitles) {
-        programsWithTitles[insertion.index] = 1
+        programsWithTitles[insertion.index]++
       } else {
-        programsWithTitles[insertion.index] = programsWithTitles[insertion.index]++
+        programsWithTitles[insertion.index] = 1
       }
     })
-    const numSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key].length)
->>>>>>> Stashed changes
-    setNumSketches(numSketches);
-    const totalNumSketches = numSketches.flat().reduce((d, i) => d + i, 0)
+
+    const actualNumSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key])
+
+    setNumSketches(actualNumSketches);
+    const totalNumSketches = actualNumSketches.flat().reduce((d, i) => d + i, 0)
 
     const newStateArray: StateObject[] = [];
     newStateArray.push({
@@ -126,6 +135,7 @@ function draw() {
         displayName: false
       }
     })
+
 
     // for (let counter = 0; counter < totalNumSketches; counter++) {
     //   const { i, j } = getIndices(counter, possibleCodes)
@@ -160,7 +170,6 @@ function draw() {
 
   return (
     <div className="App">
-<<<<<<< Updated upstream
       <div id="left">
         {firstState && (
             <div id="editor-pane">
@@ -208,7 +217,7 @@ function draw() {
           <div className="toolbar">
               <h2>Possibilities<span> (Scroll right or down!)</span></h2>
           </div>
-          <div>
+          <div id="sketch-rows">
               {
                   // where num is the number of sketches per row and index is the ith row
                   numSketches.map((num, index) => (
@@ -230,74 +239,5 @@ function draw() {
       </div>
     </div>
   );}
-=======
-      <Box>
-        <Stack>
-          <Header />
-          <Grid container spacing={2}>
-            {firstState && (
-              <Grid size={3}>
-                <Button
-                  code={firstState.sketchCode}
-                  currentEditorCode={currentEditorCode}
-                  updateState={updateStateProperty}
-                  stateArray={stateArray}
-                />
-                <Editor
-                  code={firstState.sketchCode}
-                  setCurrentEditorCode={setCurrentEditorCode}
-                  updateState={updateStateProperty}
-                  stateArray={stateArray}
-                  setNumSketches={setNumSketches}
-                  setLastClicked={setLastClicked}
-                />
-                <div>
-                  {/* <Console></Console> */}
-                  {stateArray.map((state, index) => {
-                    if (index === 0) {
-                      return (
-                        <Sketch
-                          stateArray={stateArray}
-                          state={state}
-                          code={state.sketchCode}
-                          updateState={updateStateProperty}
-                          setNumSketches={setNumSketches}
-                          setLastClicked={setLastClicked}
-                          lastClicked={lastClicked}
-                          key={crypto.randomUUID()}
-                        />)
-                    }
-                  })}
-                </div>
-              </Grid>
-            )}
-            <Grid size={9} style={{
-              borderStyle: 'solid',
-              borderColor: 'rgba(0, 0, 0, 0.12)',
-              borderWidth: '0 0 0 1px'
-            }}>
-              <div style={{ maxHeight: "100vh", overflowY: "auto" }}>
-                {numSketches.map((num, index) => ( // where num is the number of sketches per row and index is the ith row
-                  <Stack key={index}>
-                    <SketchRow
-                      updateState={updateStateProperty}
-                      stateArray={stateArray}
-                      numSketches={numSketches}
-                      setNumSketches={setNumSketches}
-                      index={index}
-                      setLastClicked={setLastClicked}
-                      lastClicked={lastClicked}
-                    />
-                  </Stack>
-                ))}
-              </div>
-            </Grid>
-          </Grid>
-        </Stack>
-      </Box>
-    </div>
-  );
-}
->>>>>>> Stashed changes
 
 export default App;

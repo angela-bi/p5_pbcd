@@ -4,12 +4,7 @@ import * as t from "@babel/types";
 import * as parser from '@babel/parser';
 import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
-<<<<<<< Updated upstream
-import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, createCommand } from '../utils/check_commands'
-=======
-import { Stack, Button, Divider } from '@mui/material';
 import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, getCommand } from '../utils/check_commands'
->>>>>>> Stashed changes
 import { perturb } from '../utils/perturb';
 
 
@@ -76,7 +71,6 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
   let src_code = generateSrcDoc(state.sketchCode)
 
   return (
-<<<<<<< Updated upstream
     <div className="sketch" onClick={handleClick}>
       <div className="iframe-wrapper">
         <iframe
@@ -91,24 +85,11 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
               w.onclick = function () { handleClick() };
 
               w.onerror = function (message) {
-=======
-    <div style={{}}>
-      {(!state.displayName || state.addedFunction) &&
-        <div style={{ display: 'flex', width: 'fit-content', height: 'fit-content', overflow: 'hidden' }} onClick={handleClick}>
-          <Stack>
-            <iframe
-              onLoad={(e) => {
-                const iframe = e.currentTarget;
-                const w = iframe.contentWindow!;
-
-                w.onerror = function (message) {
->>>>>>> Stashed changes
                   console.log(
                     `%cRuntime error:%c ${message}`,
                     "color: #CC0000; font-weight: bold",
                     "color: #CC0000; font-weight: normal",
                   );
-<<<<<<< Updated upstream
               };
 
               if (w.document.body) {
@@ -141,23 +122,6 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
                 {state.addedFunction}
             </h4>
         }
-=======
-                }
-
-                if (w.document.body) {
-                  iframe.style.height = w.document.body.scrollHeight + 20 + "px";
-                  iframe.style.width = w.document.body.scrollWidth + 20 + "px";
-                }
-              }}
-              style={{ height: "300px", width: "100%", border: "none", overflow: "hidden" }}
-              srcDoc={src_code}
-              title={state.addedFunction}
-            />
-            <Button color="inherit" size='small' style={{ textTransform: 'none' }} >{state.addedFunction}</Button>
-          </Stack>
-        </div>
-      }
->>>>>>> Stashed changes
     </div>
   );
 };
