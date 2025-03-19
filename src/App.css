@@ -7,9 +7,9 @@
     --fg-color: #333333;
     --fade-color: rgb(166, 166, 166);
     --accent-bg: #ed225d;
-    --accent-bg2: #fde1e9;
+    --accent-bg2: rgba(237, 34, 93, 0.2);
     --accent-bg3: #4c061a;
-    --accent-bg4: #f584a4;
+    --accent-bg4: rgba(237, 34, 93, 0.5);
     --accent-fg: #ffffff;
 
     --left-width: 600px;
