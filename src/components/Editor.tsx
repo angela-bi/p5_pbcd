@@ -115,7 +115,6 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     if (editorViewRef.current) redo(editorViewRef.current);
   };
 
-  // given a line of text e.g. ellipse(50,50,50)
   function valid_hover_highlight(ast: parser.ParseResult, cursor_position: number): boolean {
     let result = false
     try {
@@ -126,7 +125,6 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
               result = true
             } else if (is_function(path) && path.node.type == "CallExpression") {
               if (path.node.callee.type === "Identifier" && command_names.includes(path.node.callee.name)) {
-                // path.node.callee.name in command_names
                 result = true
               }
             }
