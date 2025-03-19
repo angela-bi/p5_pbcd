@@ -18,7 +18,8 @@ import {
 } from "@codemirror/state";
 import { history, historyKeymap, undo, redo } from "@codemirror/commands"; // Import history commands
 import { StateObject } from "../App";
-import { Loc, perturb } from "../utils/perturb";
+import { is_function, Loc, perturb } from "../utils/perturb";
+import { command_names } from "../utils/commands";
 import { useRef, useState } from "react";
 import { is_param, path_contains_pos } from "../utils/perturb";
 import * as parser from "@babel/parser";
@@ -68,12 +69,19 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       return Decoration.none;
     },
 
-    update(highlights, tr) {
+    update(_value, transaction) {
       let builder = new RangeSetBuilder<Decoration>();
+      let decorations: any[] = []
+      const { state } = transaction
+      const text = state.doc.toString()
 
-      tr.effects.forEach(effect => {
-        if (effect.is(highlightEffect)) {
+      // let ast = parseCode(text)!
+      // console.log(valid_hover_highlight(ast, cursorPosition))
+
+      transaction.effects.forEach(effect => {
+        if (effect.is(highlightEffect)) { // if the hovered over value is valid thing to highlight
           builder.add(effect.value.from, effect.value.to, highlightMark);
+          // console.log('hover highlight')
         }
       });
 
@@ -83,7 +91,8 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     provide: f => EditorView.decorations.from(f)
   });
 
-  const highlightEffect = StateEffect.define<{ from: number; to: number }>({
+  const highlightEffect = StateEffect.define<{ from: number; to: number }>({ 
+    // this separates string into each component e.g. ellipse, 50 etc by default
     map: (value, mapping) => ({
       from: mapping.mapPos(value.from),
       to: mapping.mapPos(value.to)
@@ -106,6 +115,30 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     if (editorViewRef.current) redo(editorViewRef.current);
   };
 
+  // given a line of text e.g. ellipse(50,50,50)
+  function valid_hover_highlight(ast: parser.ParseResult, cursor_position: number): boolean {
+    let result = false
+    try {
+      traverse(ast, {
+        enter(path) {
+          if (path_contains_pos(path, { start: cursor_position, end: cursor_position })) {
+            if (is_param(path)) {
+              result = true
+            } else if (is_function(path) && path.node.type == "CallExpression") {
+              if (path.node.callee.type === "Identifier" && command_names.includes(path.node.callee.name)) {
+                // path.node.callee.name in command_names
+                result = true
+              }
+            }
+          }
+        }
+      })
+    } catch (e) {
+      console.error('error parsing', e)
+    }
+    return result
+  }
+
   const handleMouseMove = (view: EditorView, event: MouseEvent) => {
     const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
 
@@ -116,9 +149,12 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       while (start > from && /\w/.test(text[start - from - 1])) start--;
       while (end < to && /\w/.test(text[end - from])) end++;
 
-      view.dispatch({
-        effects: highlightEffect.of({ from: start, to: end })
-      });
+      let ast = parseCode(code)!
+      if (valid_hover_highlight(ast, pos)) {
+        view.dispatch({
+          effects: highlightEffect.of({ from: start, to: end })
+        });
+      }
     }
   };
 
@@ -230,7 +266,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
 
   const extensions = [
     // cursorTooltipField,
-    highlightField,
+    highlightField, // onHover highlighting
     EditorView.domEventHandlers({
       mousemove: (event, view) => handleMouseMove(view, event),
       mousedown: (event, view) => {
@@ -243,7 +279,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     history(),
     keymap.of(historyKeymap),
     langs.javascript(),
-    highlight_extension
+    highlight_extension // onclick highlighting
   ];
 
   return (

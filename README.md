@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repo stores in-progress research on how we might support/create new ways to explore p5.js code! Supported by [Eric Rawn](https://www.ericrawn.media/) and [Sarah Chasins](https://schasins.com/) at the [PLAIT lab](https://plait-lab.org/). 
+This repo stores in-progress research on how we might support/create new ways to explore p5.js code! Supported by [Eric Rawn](https://www.ericrawn.media/), [Justin Lubin](https://jlubin.net/) and [Sarah Chasins](https://schasins.com/) at the [PLAIT lab](https://plait-lab.org/). 
 
 ## Installation
 1. Clone the repository

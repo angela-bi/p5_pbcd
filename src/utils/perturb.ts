@@ -26,7 +26,7 @@ export function is_param(path: NodePath<t.Node>): boolean {
 }
 
 // returns true if path is a function e.g. ellipse in ellipse(mouseX,50,50), else false
-function is_function(path: NodePath<t.Node>): boolean | null {
+export function is_function(path: NodePath<t.Node>): boolean | null {
   return (t.isCallExpression(path.node) && path.parentPath && t.isExpressionStatement(path.parentPath.node))
 }
 
