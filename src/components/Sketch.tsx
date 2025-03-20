@@ -59,13 +59,12 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
     return `
     <!doctype html>
       <head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js" onerror="function() {alert('Error loading ' + this.src);};"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.0/p5.min.js" onerror="function() {alert('Error loading ' + this.src);};"></script>
         <style>
           body {
             margin: 0;
             overflow: hidden;
           }
-
           .selectable {
             cursor: pointer;
           }
@@ -81,7 +80,7 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
 
   let src_code = generateSrcDoc(state.sketchCode)
 
-  function getHighlightedText(text: string, highlight:string) {
+  function getHighlightedText(text: string, highlight: string) {
     // Split text on highlight term, include term itself into parts, ignore case
     const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
     return <span>{parts.map(part => part.toLowerCase() === highlight.toLowerCase() ? <b>{part}</b> : part)}</span>;
@@ -91,58 +90,54 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
     <div className="sketch" onClick={handleClick}>
       <div className="iframe-wrapper">
         <iframe
-            onLoad={(e) => {
-              const iframe = e.currentTarget;
-              const w = iframe.contentWindow!;
+          onLoad={(e) => {
+            const iframe = e.currentTarget;
+            const w = iframe.contentWindow!;
 
-              if (iframe.closest(".sketch-row") == null) {
-                  (window as any).sketch = w;
+            if (iframe.closest(".sketch-row") == null) {
+              (window as any).sketch = w;
+            }
+
+            w.onclick = function () { handleClick() };
+
+            w.onerror = function (message) {
+              console.log(
+                `%cRuntime error:%c ${message}`,
+                "color: #CC0000; font-weight: bold",
+                "color: #CC0000; font-weight: normal",
+              );
+            };
+
+            if (w.document.body) {
+              const width = w.document.body.scrollWidth;
+              const height = w.document.body.scrollHeight - 6;
+
+              iframe.style.width = width + "px";
+              iframe.style.height = height + "px";
+
+              document.querySelectorAll(".sketch-row .iframe-wrapper").forEach((el: any) => {
+                el.style.width = (width / 2) + "px";
+                el.style.height = (height / 2) + "px";
+              });
+
+              document.querySelectorAll(".sketch-row .sketch").forEach((el: any) => {
+                el.style.width = (width / 2) + "px";
+              });
+
+              if (state.addedFunction) {
+                w.document.body.classList.add("selectable");
               }
-
-              w.onclick = function () { handleClick() };
-
-              w.onerror = function (message) {
-                  console.log(
-                    `%cRuntime error:%c ${message}`,
-                    "color: #CC0000; font-weight: bold",
-                    "color: #CC0000; font-weight: normal",
-                  );
-              };
-
-              // right now the 
-              if (w.document.body) {
-                const width = w.document.body.scrollWidth;
-                const height = w.document.body.scrollHeight - 6;
-
-                iframe.style.width = width + "px";
-                iframe.style.height = height + "px";
-                if (state.addedFunction) { // if not the main sketch
-                  iframe.style.position = 'absolute'; // to prevent iframe from cutting off sketch
-                }
-
-                document.querySelectorAll(".sketch-row .iframe-wrapper").forEach((el: any) => {
-                    el.style.width = (width / 2) + "px";
-                    el.style.height = (height / 2) + "px";
-                });
-
-                document.querySelectorAll(".sketch-row .sketch").forEach((el: any) => {
-                    el.style.width = (width / 2) + "px";
-                });
-
-                if (state.addedFunction) {
-                    w.document.body.classList.add("selectable");
-                }
-              }
-            }}
-            srcDoc={src_code}
-            title={state.addedFunction}
-          />
-        </div>
-        { state.addedFunction &&
-          <h4 className="added-function">
-              {getHighlightedText(state.addedFunction, 'ellipse')}
-          </h4>
-        }
+            }
+          }}
+          srcDoc={src_code}
+          title={state.addedFunction}
+        />
+      </div>
+      {state.addedFunction &&
+        <h4 className="added-function">
+          {state.addedFunction}
+        </h4>
+      }
     </div>
   );
 };

@@ -10,7 +10,7 @@ const square = { name: "square", valid: [], invalid: ["vertex"], default_valid: 
 const triangle = { name: "triangle", valid: [], invalid: ["vertex"], default_valid: true, direction: "Below", num_params: 6 } as Command
 
 const fill = { name: "fill", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Above", num_params: 3 } as Command
-const noFill = { name: "noFill", valid: ["fill"], invalid: [], default_valid: false, direction: "Below", paired_commands: [], num_params: 3 } as Command
+const noFill = { name: "noFill", valid: ["fill"], invalid: [], default_valid: false, direction: "Below", paired_commands: [], num_params: 0 } as Command
 
 const beginShape = { name: "beginShape", valid: [], invalid: ["vertex", "beginShape"], default_valid: true, direction: "Below", paired_commands: ["vertex", "endShape"], num_params: 0 } as Command // since it's only a hoverCommand
 const vertex = { name: "vertex", valid: ["beginShape", "vertex"], invalid: [], default_valid: false, direction: "Below", num_params: 2 } as Command
@@ -23,7 +23,7 @@ const translate = { name: "translate", valid: ["circle", "ellipse", "arc", "line
 const push = { name: "push", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Below", paired_commands: ["translate", "pop"], num_params: 0 } as Command
 const pop = { name: "pop", valid: ["applyMatrix"], invalid: [], default_valid: false, direction: "Below", num_params: 0 } as Command
 
-const commands = [circle, ellipse, fill, translate, push, pop, beginShape, vertex, arc, line, rect, quad, square, triangle, endShape, erase, noErase];
+const commands = [circle, ellipse, fill, noFill, translate, push, pop, line, rect, quad, square, triangle, erase, noErase];
 const command_names = commands.map(command => command.name)
 const params = ['frameCount', 'mouseX', 'mouseY'];
 const operators = ["*", "+"] as ("*" | "+" | "-" | "/" | "%" | "**" | "&" | "|" | ">>" | ">>>" | "<<" | "^" | "==" | "===" | "!=" | "!==" | "in" | "instanceof" | ">" | "<" | ">=" | "<=" | "|>")[]

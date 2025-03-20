@@ -16,43 +16,43 @@ interface SketchRowProps {
   lastClicked: number;
 }
 
-export const SketchRow: React.FC<SketchRowProps> = ({updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked}) => {
+export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked }) => {
   // get sketches for that row to render
-  const start = numSketches.slice(0,index).reduce((sum, val) => sum + val, 0) + 1
-  const end = start + numSketches[index] 
+  const start = numSketches.slice(0, index).reduce((sum, val) => sum + val, 0) + 1
+  const end = start + numSketches[index]
   const sketches = stateArray.slice(start, end)
-  
+
   // find function to render: get the first state of the row, parse it for the first Identifier
-  let functionName = ''
-  if (sketches.length !== 0 && sketches[0].addedFunction != undefined) {
-    let ast = parser.parse(sketches[0].addedFunction!)
-    traverse(ast, {
-      CallExpression(path) {
-        if (path.node.callee.type === "Identifier") {
-          functionName = path.node.callee.name;
-        }
-      },
-    });
-  }
+  let functionName = sketches[0]?.displayName
+  // if (sketches.length !== 0 && sketches[0].addedFunction != undefined) {
+  //   let ast = parser.parse(sketches[0].addedFunction!)
+  //   traverse(ast, {
+  //     CallExpression(path) {
+  //       if (path.node.callee.type === "Identifier") {
+  //         functionName = path.node.callee.name;
+  //       }
+  //     },
+  //   });
+  // }
   // TODO: don't render function name if it's a param row
   //backgroundColor: 'rgba(135,206,250, 0.2)
   return (
     <div className="sketch-row">
       <h3>{functionName}</h3>
       <div>
-          {sketches.map((state) => {
-            return (
-                <Sketch
-                  stateArray={stateArray}
-                  state={state}
-                  code={state.sketchCode}
-                  updateState={updateState}
-                  setNumSketches={setNumSketches}
-                  setLastClicked={setLastClicked}
-                  lastClicked={lastClicked}
-                  key={crypto.randomUUID()}
-                />)
-          })}
+        {sketches.map((state) => {
+          return (
+            <Sketch
+              stateArray={stateArray}
+              state={state}
+              code={state.sketchCode}
+              updateState={updateState}
+              setNumSketches={setNumSketches}
+              setLastClicked={setLastClicked}
+              lastClicked={lastClicked}
+              key={crypto.randomUUID()}
+            />)
+        })}
       </div>
     </div>
   )

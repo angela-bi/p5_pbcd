@@ -40,10 +40,28 @@ function find_function(path: NodePath<t.Node>): NodePath<t.Node> | null {
   }
   return null
 }
-
-// given a path, find all the variables in its scope including global, block
-function find_vars_inscope(path: NodePath<t.Node>) {
+//Takes #maxFromEach programs from each index category.
+export function samplePrograms(newPrograms: newInsertion[], maxFromEach: number): newInsertion[] {
+  const sampledPrograms: newInsertion[] = []
+  const programsIndicies: any = {}
+  const shuffled = newPrograms
+    .map(value => ({ value, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ value }) => value)
+  shuffled.forEach((insertion) => {
+    if (insertion.index in programsIndicies) {
+      if (programsIndicies[insertion.index] < maxFromEach) {
+        programsIndicies[insertion.index]++
+        sampledPrograms.push(insertion)
+      }
+    } else {
+      programsIndicies[insertion.index] = 1
+      sampledPrograms.push(insertion)
+    }
+  })
+  return sampledPrograms
 }
+
 
 // given an ast, path representing the function (returned by find_function), and position that user clicked
 // returns three arrays of the same structure: [row_1, row_2, ... ] where row_i represents function i. 
@@ -56,116 +74,226 @@ function find_vars_inscope(path: NodePath<t.Node>) {
 // }
 
 
-function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.Node>, curr_pos: Loc) {
-  let addedFunc: string[] = []; // one component per param suggestion
-  let possibleCode: string[] = [];
-  let line: Loc[] = [];
+// function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.Node>, curr_pos: Loc) {
+//   let addedFunc: string[] = []; // one component per param suggestion
+//   let possibleCode: string[] = [];
+//   let line: Loc[] = [];
 
-  for (let i = 0; i < params.length; i++) {
-    const clonedAst = t.cloneNode(ast, true, false);
-    const clonedPath = traverse(clonedAst, {
-      enter(clonedPath) {
-        if (
-          clonedPath.node.loc?.start.index === funcPath.node.start &&
-          clonedPath.node.loc?.end.index === funcPath.node.end &&
-          t.isCallExpression(clonedPath.node)
-        ) {
-          clonedPath.stop();
-          if (t.isCallExpression(clonedPath.node) && t.isIdentifier(clonedPath.node.callee)) {
-            const callee = t.identifier(clonedPath.node.callee.name);
+//   for (let i = 0; i < params.length; i++) {
+//     const clonedAst = t.cloneNode(ast, true, false);
+//     const clonedPath = traverse(clonedAst, {
+//       enter(clonedPath) {
+//         if (
+//           clonedPath.node.loc?.start.index === funcPath.node.start &&
+//           clonedPath.node.loc?.end.index === funcPath.node.end &&
+//           t.isCallExpression(clonedPath.node)
+//         ) {
+//           clonedPath.stop();
+//           if (t.isCallExpression(clonedPath.node) && t.isIdentifier(clonedPath.node.callee)) {
+//             const callee = t.identifier(clonedPath.node.callee.name);
 
-            let curr_arg: t.Expression | undefined = undefined;
-            const updatedArgs = clonedPath.node.arguments.map((arg, index) => {
-              curr_arg = arg as t.Expression;
-              if (
-                arg.loc &&
-                arg.loc.start.index <= curr_pos.start &&
-                arg.loc.end.index >= curr_pos.end
-              ) {
-                return t.identifier(params[i]);
-              }
-              return t.isNumericLiteral(arg) ? t.numericLiteral(arg.value) : arg;
-            });
+//             let curr_arg: t.Expression | undefined = undefined;
+//             const updatedArgs = clonedPath.node.arguments.map((arg, index) => {
+//               curr_arg = arg as t.Expression;
+//               if (
+//                 arg.loc &&
+//                 arg.loc.start.index <= curr_pos.start &&
+//                 arg.loc.end.index >= curr_pos.end
+//               ) {
+//                 return t.identifier(params[i]);
+//               }
+//               return t.isNumericLiteral(arg) ? t.numericLiteral(arg.value) : arg;
+//             });
 
-            const callExpression = t.callExpression(callee, updatedArgs);
-            addedFunc.push(generate(callExpression).code);
-            clonedPath.replaceWith(callExpression);
-            possibleCode.push(generate(clonedAst).code);
-            line.push({ start: curr_pos.start, end: curr_pos.end });
+//             const callExpression = t.callExpression(callee, updatedArgs);
+//             addedFunc.push(generate(callExpression).code);
+//             clonedPath.replaceWith(callExpression);
+//             possibleCode.push(generate(clonedAst).code);
+//             line.push({ start: curr_pos.start, end: curr_pos.end });
 
-            for (let j = 0; j < operators.length; j++) {
-              const updatedArgs = clonedPath.node.arguments.map((arg, index) => {
-                if (
-                  !t.isNumericLiteral(arg)
-                ) {
-                  return t.binaryExpression(operators[j], t.identifier(params[i]), curr_arg!);
-                }
-                return arg
-              });
+//             for (let j = 0; j < operators.length; j++) {
+//               const updatedArgs = clonedPath.node.arguments.map((arg, index) => {
+//                 if (
+//                   !t.isNumericLiteral(arg)
+//                 ) {
+//                   return t.binaryExpression(operators[j], t.identifier(params[i]), curr_arg!);
+//                 }
+//                 return arg
+//               });
 
-              const callExpression = t.callExpression(callee, updatedArgs);
-              addedFunc.push(generate(callExpression).code);
-              clonedPath.replaceWith(callExpression);
-              possibleCode.push(generate(clonedAst).code);
-              line.push({ start: curr_pos.start, end: curr_pos.end });
-            }
+//               const callExpression = t.callExpression(callee, updatedArgs);
+//               addedFunc.push(generate(callExpression).code);
+//               clonedPath.replaceWith(callExpression);
+//               possibleCode.push(generate(clonedAst).code);
+//               line.push({ start: curr_pos.start, end: curr_pos.end });
+//             }
+//           }
+//         }
+//       }
+//     })
+//   };
+//   return { addedFunc, possibleCode, line }
+// }
+//finds a node by its ID
+function findNodeByID(newProgram: t.Node, nodeWithID: t.Node): NodePath<t.Node> | undefined {
+  let find = undefined
+  if (nodeWithID?.extra !== undefined) {
+    if ("id" in nodeWithID.extra!) {
+      const nodeID = nodeWithID.extra!["id"]
+      traverse(newProgram, {
+        enter(path) {
+          if (path.node.extra?.id === nodeID) {
+            find = path
           }
         }
-      }
-    })
-  };
-  return { addedFunc, possibleCode, line }
-}
-//finds a node by its ID
-function findNodeByID(newProgram: t.Node, nodeID: any): NodePath<t.Node> | undefined {
-  let find = undefined
-  traverse(newProgram, {
-    enter(path) {
-      if (path.node.extra?.id === nodeID) {
-        find = path
-      }
+      })
+      return find
     }
-  })
-  return find
+  }
+  return undefined
 }
 
 function makeCallExpression(command: Command) {
   const callee = t.identifier(command.name)
   const params = [] as t.Expression[];
   for (let j = 0; j < command.num_params; j++) {
-    params.push(t.numericLiteral(100))
+    const numLit = t.numericLiteral(100)
+    numLit.extra = { "id": crypto.randomUUID() }
+    params.push(numLit)
   }
   const callExpr = t.callExpression(callee, params)
-  console.log(generate(callExpr))
+  callExpr.extra = {}
+  callExpr.extra['id'] = crypto.randomUUID()
   return callExpr
+}
+
+//Given a Call Expression Path, an ast, and a set of possible substitutions, replaces literals with the substitutions. 
+//Returns a list of programs
+//"All" premutates all the arguments or just some 
+function perturbArguments(functionPath: NodePath<t.CallExpression>, ast: parser.ParseResult<t.File>, values: (t.NumericLiteral | t.Identifier)[], num_programs: number, all: Boolean = true,): newInsertion[] {
+  const newPrograms: newInsertion[] = []
+  if (functionPath && "node" in functionPath && "arguments" in functionPath.node) {
+    for (var i = 0; i < num_programs; i++) {
+      let newAST = t.cloneNode(ast);
+      functionPath.node.arguments.forEach((argumentNode) => {
+        const substitution = values[Math.floor(Math.random() * values.length)];
+        const argumentPath = findNodeByID(newAST, argumentNode)
+        if (argumentPath) {
+          newAST = perturbLiteral(argumentPath, newAST, substitution) ?? newAST
+          if (!all && newAST) {
+            const newFuncNode = findNodeByID(newAST, functionPath.node)
+            if (newFuncNode) {
+              newPrograms.push({ index: "Test", title: generate(newFuncNode.node).code, program: generate(newAST).code })
+            }
+          }
+        }
+        if (all && newAST) {
+          const newFuncNode = findNodeByID(newAST, functionPath.node)
+          if (newFuncNode) {
+            newPrograms.push({ index: "Test", title: generate(newFuncNode.node).code, program: generate(newAST).code })
+          }
+        }
+      })
+    }
+
+  }
+  return newPrograms
+}
+//Replaces one literal node with the value provided
+function perturbLiteral(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>, value: (t.NumericLiteral | t.Identifier)): parser.ParseResult<t.File> | undefined {
+  const patch = (path: NodePath): NodePath | undefined => {
+    if (path.isNumericLiteral()) {
+      value.extra = {}
+      value.extra["id"] = crypto.randomUUID()
+      path.replaceInline(value)
+      return path
+    } else {
+      return undefined
+    }
+  }
+  return applyPatch(nodePath, ast, patch)
+}
+
+//Given a patch, make a new AST, apply the patch, and return the ast
+function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>, patch: (path: NodePath) => NodePath | undefined): parser.ParseResult<t.File> | undefined {
+  let clonedAST = t.cloneNode(ast, true, false)
+  const dupPath = findNodeByID(clonedAST, nodePath.node)!
+  const replacementNode = patch(dupPath)
+  dupPath.replaceWith(replacementNode!)
+  return clonedAST!
 }
 interface newInsertion {
   index: string,
+  title: string,
   program: string
 }
+
+
+function literalInsertions(path: NodePath<t.Node>) {
+
+  //Numbers
+  const numbers = [10, 100]
+
+  //Variables In Scope
+  const bindings: t.Identifier[] = []
+  Object.keys(path.scope.bindings).forEach(key => {
+    const identifier = path.scope.bindings[key].identifier
+    identifier.extra = { "id": crypto.randomUUID() }
+    bindings.push(identifier)
+  })
+
+  //Special Variables
+  const special_list = ["frameCount", "mouseX", "mouseY"]
+  const specials = special_list.map((special) => {
+    const special_node = t.identifier(special)
+    special_node.extra = { "id": crypto.randomUUID() }
+    return special_node
+  })
+
+  return [...numbers.map(n => t.numericLiteral(n)), ...bindings, ...specials]
+}
+
 //Given a Call Expression Path, returns a list of all the valid programs with new commands inserted
 function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: parser.ParseResult<t.File>) {
   let newPrograms: newInsertion[] = []
   const callee = (functionPath.node as t.CallExpression).callee
   if (callee.type === "Identifier") {
-    const cursorCommand = getCommand(callee.name)!
-    const nodeID = functionPath.node.extra!["id"]
+    const cursorCommand = getCommand(callee.name)
     commands.forEach(insertCommand => {
       let clonedAST = t.cloneNode(ast, true, false)
-      const dupNode = findNodeByID(clonedAST, nodeID)!
-      switch (checkValidity(cursorCommand, insertCommand)) {
-        case 'Above': {
-          dupNode.insertBefore(makeCallExpression(insertCommand))
-          break;
+      const dupNode = findNodeByID(clonedAST, functionPath.node)
+      let newNode: any | null = null;
+      if (cursorCommand && dupNode) {
+        switch (checkValidity(cursorCommand, insertCommand)) {
+          case 'Above': {
+            newNode = dupNode.insertBefore(makeCallExpression(insertCommand))
+            break;
+          }
+          case 'Below': {
+            newNode = dupNode.insertAfter(makeCallExpression(insertCommand))
+            break;
+          }
         }
-        case 'Below': {
-          dupNode.insertAfter(makeCallExpression(insertCommand))
-          break;
+
+        if (newNode !== null) {
+          const exprNode = newNode[0].node.expression
+          const newCallPath = findNodeByID(clonedAST, exprNode)
+          // console.log("newPath", newCallPath)
+          if (newCallPath && newCallPath.isCallExpression()) {
+            // console.log(literalInsertions(newCallPath))
+            perturbArguments(newCallPath, clonedAST, literalInsertions(newCallPath), 10).forEach(
+              (program) => {
+                // console.log("perturbed", program)
+                newPrograms.push({ ...program, index: insertCommand.name })
+              })
+          }
+
         }
+        const newCode = generate(clonedAST).code
+        newPrograms.push({ index: insertCommand.name, program: newCode, title: insertCommand.name })
+        // console.log(newCode)
+
       }
-      const newCode = generate(clonedAST).code
-      newPrograms.push({ index: insertCommand.name, program: newCode })
-      console.log(newCode)
 
     });
     return newPrograms
@@ -185,11 +313,6 @@ export function perturb(
   code: string,
   currPos: Loc,
 ): newInsertion[] {
-  let possibleCodes: string[][] = [];
-  let addedFuncs: string[][] = [];
-  let lines: Loc[][] = [];
-
-
   let newPrograms: newInsertion[] = []
   let ast: parser.ParseResult<t.File>;
   try {
@@ -213,44 +336,19 @@ export function perturb(
     }
   })
 
-  console.log(ast)
-  //find AST Path of Cursor
-  let selectedASTPath: NodePath<t.Node>;
+  console.log("AST", ast)
   traverse(ast, {
-
     CallExpression: function (path) {
       if (checkPosition(path, cursorPosition)) {
         const newCommands = findValidInsertCommands(path, ast)!
-        console.log(newCommands)
+        // console.log("NewCommands", newCommands)
         newPrograms.push(...newCommands)
       }
 
     },
     enter(path) {
-      // if (path_contains_pos(path, { start: cursorPosition, end: cursorPosition })) {
-
-
-      //   if (is_param(path)) {
-      //     //perturb params
-
-
-      //   }
-      //   if (path.isCallExpression()) {
-      //     const newCommands = findValidInsertCommands(path, ast)
-      //     console.log(path.insertAfter(parser.parse("ellipse(100,100)")))
-      //     console.log(generate(ast))
-      //     //mutate all params
-      //     //const newMutations = 
-      //     console.log(path)
-      //   }
-      // }
     }
   })
-
-  console.log(currPos);
-  possibleCodes.push(["x = 1"]);
-  addedFuncs.push(["xyz"]);
-  lines.push([{ start: -1, end: -1 }])
 
   return newPrograms;
 }
@@ -282,12 +380,12 @@ export function _perturb(
           if (is_param(path)) { // user clicks on parameter
             let funcPath = find_function(path)
 
-            let { addedFunc, possibleCode, line } = perturb_params(ast, funcPath!, currPos)
-            if (addedFunc.length > 0 && possibleCode && line) {
-              addedFuncs.push(addedFunc)
-              possibleCodes.push(possibleCode)
-              lines.push(line)
-            }
+            // let { addedFunc, possibleCode, line } = perturb_params(ast, funcPath!, currPos)
+            // if (addedFunc.length > 0 && possibleCode && line) {
+            //   addedFuncs.push(addedFunc)
+            //   possibleCodes.push(possibleCode)
+            //   lines.push(line)
+            // }
           }
 
           if (path.node.type === 'Identifier' || path.node.type === 'NumericLiteral') { // user clicks on function, or after user clicks parameter

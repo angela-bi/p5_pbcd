@@ -6,14 +6,15 @@ import { Editor } from './components/Editor';
 import { Button } from './components/Button';
 import { useEffect } from 'react';
 import SketchRow from './components/SketchRow';
-import { Loc, perturb } from './utils/perturb';
+import { Loc, perturb, samplePrograms } from './utils/perturb';
 // import { Console } from './components/Console';
+
 
 export interface StateObject {
   sketchCode: string;
   currentEditorCode?: string;
   addedFunction?: string;
-  displayName: boolean;
+  displayName: string;
   lineInserted?: Loc;
 }
 
@@ -49,14 +50,14 @@ function draw() {
     arg: StateObject[] | ((_: StateObject[]) => StateObject[])
   ) {
     _setStateArray((prevArg) => {
-        let newArg = typeof arg == "function" ? arg(prevArg) : arg;
-        if (newArg && newArg.length > 0 && newArg[0].currentEditorCode) {
-            localStorage.setItem(
-                "savedCode",
-                JSON.stringify(newArg[0].currentEditorCode)
-            );
-        }
-        return newArg;
+      let newArg = typeof arg == "function" ? arg(prevArg) : arg;
+      if (newArg && newArg.length > 0 && newArg[0].currentEditorCode) {
+        localStorage.setItem(
+          "savedCode",
+          JSON.stringify(newArg[0].currentEditorCode)
+        );
+      }
+      return newArg;
     });
   }
 
@@ -64,14 +65,14 @@ function draw() {
     arg: string | ((_: string) => string)
   ) {
     _setCurrentEditorCode((prevArg) => {
-        let newArg = typeof arg == "function" ? arg(prevArg) : arg;
-        if (newArg) {
-            localStorage.setItem(
-                "savedCode",
-                JSON.stringify(newArg)
-            );
-        }
-        return newArg;
+      let newArg = typeof arg == "function" ? arg(prevArg) : arg;
+      if (newArg) {
+        localStorage.setItem(
+          "savedCode",
+          JSON.stringify(newArg)
+        );
+      }
+      return newArg;
     });
   }
 
@@ -101,14 +102,9 @@ function draw() {
     let j = counter - cumulativeCount;
     return { i, j };
   }
+  function updateCodeState(curr_pos: Loc) {
+    const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 10).sort((a, b) => a.index > b.index ? -1 : 1)
 
-  useEffect(() => {
-    document.title = "p5.js Web Editor";
-
-    const curr_pos = { start: lastClicked, end: lastClicked } as Loc
-    const newPrograms = perturb(defaultSketchCode, curr_pos);
-
-    // newPrograms.sort((a, b) => { return a.index })
     const programsWithTitles: any = {}
     newPrograms.forEach((insertion) => {
       if (insertion.index in programsWithTitles) {
@@ -121,49 +117,30 @@ function draw() {
     const actualNumSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key])
 
     setNumSketches(actualNumSketches);
-    const totalNumSketches = actualNumSketches.flat().reduce((d, i) => d + i, 0)
 
     const newStateArray: StateObject[] = [];
     newStateArray.push({
       sketchCode: defaultSketchCode,
-      displayName: false,
+      displayName: "",
     })
+
     const stateAdd = newPrograms.map((insertion) => {
       return {
         sketchCode: insertion.program,
-        addedFunction: insertion.index,
-        displayName: false
+        addedFunction: insertion.title,
+        displayName: insertion.index
       }
     })
 
-
-    // for (let counter = 0; counter < totalNumSketches; counter++) {
-    //   const { i, j } = getIndices(counter, possibleCodes)
-    //   newStateArray.push({
-    //     sketchCode: possibleCodes[i][j],
-    //     addedFunction: addedFuncs[i][j],
-    //     displayName: counter === 0 ? false : true,
-    //     lineInserted: lines[i][j]
-    //   })
-    // }
-
-    // Object.keys(newPrograms).forEach((key) => {
-    //   const programs = newPrograms.get(key)
-
-    //   Object.keys(newPrograms).forEach((program) => {
-
-    //   })
-    // })
-    // for (let counter = 0; counter < totalNumSketches; counter++) {
-    //   const { i, j } = getIndices(counter, possibleCodes)
-    //   newStateArray.push({
-    //     sketchCode: possibleCodes[i][j],
-    //     addedFunction: addedFuncs[i][j],
-    //     displayName: counter === 0 ? false : true,
-    //     lineInserted: lines[i][j]
-    //   })
-    // }
     setStateArray([...newStateArray, ...stateAdd]);
+  }
+  useEffect(() => {
+    document.title = "p5.js Web Editor";
+
+    const curr_pos = { start: lastClicked, end: lastClicked } as Loc
+    console.log("Use effect update!")
+    updateCodeState(curr_pos)
+
   }, []);
 
   const firstState = stateArray[0]
@@ -172,41 +149,42 @@ function draw() {
     <div className="App">
       <div id="left">
         {firstState && (
-            <div id="editor-pane">
-                <div className="toolbar">
-                    <h2>Sketch</h2>
-                    <Button
-                        code={firstState.sketchCode}
-                        currentEditorCode={currentEditorCode}
-                        updateState={updateStateProperty}
-                        stateArray={stateArray} />
-                </div>
-                <Editor
-                    code={firstState.sketchCode}
-                    setCurrentEditorCode={setCurrentEditorCode}
-                    updateState={updateStateProperty}
-                    stateArray={stateArray}
-                    setNumSketches={setNumSketches}
-                    setLastClicked={setLastClicked} />
+          <div id="editor-pane">
+            <div className="toolbar">
+              <h2>Sketch</h2>
+              <Button
+                code={firstState.sketchCode}
+                currentEditorCode={currentEditorCode}
+                updateState={updateStateProperty}
+                stateArray={stateArray} />
             </div>
+            <Editor
+              code={firstState.sketchCode}
+              setCurrentEditorCode={setCurrentEditorCode}
+              updateState={updateStateProperty}
+              updateCodeState={updateCodeState}
+              stateArray={stateArray}
+              setNumSketches={setNumSketches}
+              setLastClicked={setLastClicked} />
+          </div>
         )}
         <div id="output-pane">
           <div className="toolbar">
-              <h2>Preview</h2>
+            <h2>Preview</h2>
           </div>
           {
             stateArray.map((state, index) => {
               if (index === 0) {
                 return (
-                    <Sketch
-                          stateArray={stateArray}
-                          state={state}
-                          code={state.sketchCode}
-                          updateState={updateStateProperty}
-                          setNumSketches={setNumSketches}
-                          setLastClicked={setLastClicked}
-                          lastClicked={lastClicked}
-                          key={crypto.randomUUID()} />)
+                  <Sketch
+                    stateArray={stateArray}
+                    state={state}
+                    code={state.sketchCode}
+                    updateState={updateStateProperty}
+                    setNumSketches={setNumSketches}
+                    setLastClicked={setLastClicked}
+                    lastClicked={lastClicked}
+                    key={crypto.randomUUID()} />)
               }
             })
           }
@@ -215,29 +193,30 @@ function draw() {
       <div id="right">
         <div id="possibilities-pane" data-has-sketches={numSketches.length > 0}>
           <div className="toolbar">
-              <h2>Possibilities<span> (Scroll right or down!)</span></h2>
+            <h2>Possibilities<span> (Scroll right or down!)</span></h2>
           </div>
           <div id="sketch-rows">
-              {
-                  // where num is the number of sketches per row and index is the ith row
-                  numSketches.map((num, index) => (
-                      <div key={index}>
-                        <SketchRow
-                          updateState={updateStateProperty}
-                          stateArray={stateArray}
-                          numSketches={numSketches}
-                          setNumSketches={setNumSketches}
-                          index={index}
-                          setLastClicked={setLastClicked}
-                          lastClicked={lastClicked}
-                        />
-                    </div>
-                  ))
-              }
+            {
+              // where num is the number of sketches per row and index is the ith row
+              numSketches.map((num, index) => (
+                <div key={index}>
+                  <SketchRow
+                    updateState={updateStateProperty}
+                    stateArray={stateArray}
+                    numSketches={numSketches}
+                    setNumSketches={setNumSketches}
+                    index={index}
+                    setLastClicked={setLastClicked}
+                    lastClicked={lastClicked}
+                  />
+                </div>
+              ))
+            }
           </div>
         </div>
       </div>
     </div>
-  );}
+  );
+}
 
 export default App;

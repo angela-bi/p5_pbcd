@@ -29,12 +29,13 @@ interface EditorProps {
   code: string;
   setCurrentEditorCode: React.Dispatch<React.SetStateAction<string>>;
   updateState: <K extends keyof StateObject>(index: number, key: K, value: StateObject[K]) => void
+  updateCodeState: (curr_pos: Loc) => void
   setNumSketches: React.Dispatch<React.SetStateAction<number[]>>
   setLastClicked: React.Dispatch<React.SetStateAction<number>>
   stateArray: StateObject[]
 }
 
-export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, updateState, setNumSketches, setLastClicked, stateArray }) => {
+export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, updateState, updateCodeState, setNumSketches, setLastClicked, stateArray }) => {
   const editorViewRef = useRef<EditorView | null>(null);
   const [cursorPosition, setCursorPosition] = useState<number>(114);
   // generate cursor tooltips
@@ -91,7 +92,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     provide: f => EditorView.decorations.from(f)
   });
 
-  const highlightEffect = StateEffect.define<{ from: number; to: number }>({ 
+  const highlightEffect = StateEffect.define<{ from: number; to: number }>({
     // this separates string into each component e.g. ellipse, 50 etc by default
     map: (value, mapping) => ({
       from: mapping.mapPos(value.from),
@@ -100,7 +101,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
   });
 
   const highlightMark = Decoration.mark({
-      class: "cursor-hovered"
+    class: "cursor-hovered"
   });
   const handleEditorChange = (viewUpdate: ViewUpdate) => {
     const currentText = viewUpdate.state.doc.toString();
@@ -177,33 +178,8 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
 
     try {
       const clicked_pos = { start: curr_pos, end: curr_pos } as Loc;
-      const newPrograms = perturb(code, clicked_pos);
-      const programsWithTitles: any = {}
-      newPrograms.forEach((insertion) => {
-
-        if (insertion.index in programsWithTitles) {
-          programsWithTitles[insertion.index]++
-        } else {
-          programsWithTitles[insertion.index] = 1
-        }
-      })
-      const numSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key])
-      setNumSketches(numSketches);
-
-      let counter = 1
-      newPrograms.forEach((insertion) => {
-        updateState(counter, "sketchCode", insertion.program)
-        updateState(counter, "addedFunction", insertion.index)
-        counter++
-      })
-      // for (let i = 0; i < possibleCodes.length; i++) {
-      //   for (let j = 0; j < possibleCodes[i].length; j++) {
-      //     updateState(counter, "sketchCode", possibleCodes[i][j])
-      //     updateState(counter, "addedFunction", addedFuncs[i][j])
-      //     // updateState(counter+1, 'lineInserted', lines[i][j])
-      //     counter += 1
-      //   }
-      // }
+      console.log("click update!")
+      updateCodeState(clicked_pos)
     } catch (error) {
       // if parsing error
       console.error("Error parsing the code:", error);
