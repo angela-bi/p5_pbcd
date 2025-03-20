@@ -117,13 +117,21 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
               iframe.style.height = height + "px";
               
 
+              const desiredWidth = 150; // in px
+
+              const factor = desiredWidth / width;
+
+              document.querySelectorAll(".sketch-row .sketch iframe").forEach((el: any) => {
+                  el.style.transform = `scale(${factor}, ${factor})`;
+              });
+
               document.querySelectorAll(".sketch-row .iframe-wrapper").forEach((el: any) => {
-                el.style.width = (width / 2) + "px";
-                el.style.height = (height / 2) + "px";
+                el.style.width = (width * factor) + "px";
+                el.style.height = (height * factor) + "px";
               });
 
               document.querySelectorAll(".sketch-row .sketch").forEach((el: any) => {
-                el.style.width = (width / 2) + "px";
+                el.style.width = (width * factor) + "px";
               });
 
               if (state.addedFunction) {

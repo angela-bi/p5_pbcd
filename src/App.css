@@ -248,6 +248,7 @@ body::after {
     border-radius: 5px 5px 0 0;
     transform: scale(0.5, 0.5);
     transform-origin: 0 0;
+    /* NOTE: transform property gets set in JavaScript! */
 }
 
 .sketch-row .sketch {
