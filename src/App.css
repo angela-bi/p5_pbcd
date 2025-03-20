@@ -195,13 +195,36 @@ body::after {
 }
 
 .sketch-row > div {
-    display: flex;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: 1fr;
     overflow-x: scroll;
 }
 
 .sketch-row h3 {
     font-size: 1.2em;
     margin: 5px 0;
+}
+
+.sketch-row[data-special="true"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -20px;
+    bottom: 0;
+    width: 5px;
+    background-color: var(--accent-bg);
+}
+
+.sketch-row[data-special="true"] > div {
+    grid-template-rows: 1fr 1fr;
+}
+
+.sketch-row[data-special="true"] h3 {
+    background-color: var(--accent-bg2);
+    font-weight: 650;
+    padding: 5px;
+    border-radius: 5px;
 }
 
 /* Sketches */

@@ -16,6 +16,8 @@ interface SketchRowProps {
   lastClicked: number;
 }
 
+const SPECIAL_ROWS: {[k: string] : string} = {"triangle": "Triangles!"};
+
 export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked }) => {
   // get sketches for that row to render
   const start = numSketches.slice(0, index).reduce((sum, val) => sum + val, 0) + 1
@@ -23,7 +25,6 @@ export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, i
   const sketches = stateArray.slice(start, end)
 
   // find function to render: get the first state of the row, parse it for the first Identifier
-  let functionName = sketches[0]?.displayName
   // if (sketches.length !== 0 && sketches[0].addedFunction != undefined) {
   //   let ast = parser.parse(sketches[0].addedFunction!)
   //   traverse(ast, {
@@ -36,9 +37,14 @@ export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, i
   // }
   // TODO: don't render function name if it's a param row
   //backgroundColor: 'rgba(135,206,250, 0.2)
+
+  const assignedDisplayName = sketches[0]?.displayName;
+  const special = SPECIAL_ROWS.hasOwnProperty(assignedDisplayName);
+  const displayName = special ? SPECIAL_ROWS[assignedDisplayName] : assignedDisplayName;
+
   return (
-    <div className="sketch-row">
-      <h3>{functionName}</h3>
+    <div className="sketch-row" data-special={special}>
+      <h3>{displayName}</h3>
       <div>
         {sketches.map((state) => {
           return (
