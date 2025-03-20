@@ -6,6 +6,17 @@ import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
 import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, getCommand } from '../utils/check_commands'
 import { perturb } from '../utils/perturb';
+import CodeMirror from "@uiw/react-codemirror";
+import { langs } from '@uiw/codemirror-extensions-langs'
+import {
+  Decoration,
+  DecorationSet,
+  keymap,
+  ViewUpdate,
+  Tooltip,
+  showTooltip,
+  EditorView
+} from "@codemirror/view";
 
 
 interface SketchProps {
@@ -70,6 +81,12 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
 
   let src_code = generateSrcDoc(state.sketchCode)
 
+  function getHighlightedText(text: string, highlight:string) {
+    // Split text on highlight term, include term itself into parts, ignore case
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return <span>{parts.map(part => part.toLowerCase() === highlight.toLowerCase() ? <b>{part}</b> : part)}</span>;
+  }
+
   return (
     <div className="sketch" onClick={handleClick}>
       <div className="iframe-wrapper">
@@ -92,12 +109,16 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
                   );
               };
 
+              // right now the 
               if (w.document.body) {
                 const width = w.document.body.scrollWidth;
                 const height = w.document.body.scrollHeight - 6;
 
                 iframe.style.width = width + "px";
                 iframe.style.height = height + "px";
+                if (state.addedFunction) { // if not the main sketch
+                  iframe.style.position = 'absolute'; // to prevent iframe from cutting off sketch
+                }
 
                 document.querySelectorAll(".sketch-row .iframe-wrapper").forEach((el: any) => {
                     el.style.width = (width / 2) + "px";
@@ -118,9 +139,9 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
           />
         </div>
         { state.addedFunction &&
-            <h4 className="added-function">
-                {state.addedFunction}
-            </h4>
+          <h4 className="added-function">
+              {getHighlightedText(state.addedFunction, 'ellipse')}
+          </h4>
         }
     </div>
   );
