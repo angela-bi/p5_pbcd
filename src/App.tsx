@@ -115,6 +115,7 @@ function draw() {
     })
 
     const actualNumSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key])
+    console.log(actualNumSketches)
 
     setNumSketches(actualNumSketches);
 

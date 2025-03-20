@@ -115,6 +115,7 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
 
               iframe.style.width = width + "px";
               iframe.style.height = height + "px";
+              
 
               document.querySelectorAll(".sketch-row .iframe-wrapper").forEach((el: any) => {
                 el.style.width = (width / 2) + "px";

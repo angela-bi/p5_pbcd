@@ -5,6 +5,9 @@ import * as parser from "@babel/parser";
 import traverse, { NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
 import generate from "@babel/generator";
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import IconButton from '@mui/material/IconButton';
 
 interface SketchRowProps {
   updateState: <K extends keyof StateObject>(index: number, key: K, value: StateObject[K]) => void
@@ -20,8 +23,9 @@ const SPECIAL_ROWS: {[k: string] : string} = {"triangle": "Triangles!"};
 
 export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked }) => {
   // get sketches for that row to render
+  const [limit, setLimit] = useState<number>(5);
   const start = numSketches.slice(0, index).reduce((sum, val) => sum + val, 0) + 1
-  const end = start + numSketches[index]
+  const end = start + Math.min(limit, numSketches[index])
   const sketches = stateArray.slice(start, end)
 
   // find function to render: get the first state of the row, parse it for the first Identifier
@@ -60,6 +64,11 @@ export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, i
             />)
         })}
       </div>
+      { numSketches[index] > 5 &&
+        <IconButton onClick={() => {setLimit(limit + 5)}}>
+          <ChevronRightIcon/>
+        </IconButton>
+      }
     </div>
   )
 }
