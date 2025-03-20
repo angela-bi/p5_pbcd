@@ -269,6 +269,7 @@ body::after {
     font-family: monospace;
     font-size: 0.9em;
     padding: 5px;
+    white-space: pre-wrap;
     word-break: break-all;
 }
 

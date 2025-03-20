@@ -6,6 +6,7 @@ import traverse, { NodePath } from '@babel/traverse';
 import generate from "@babel/generator";
 import { ConstructorNames, ModifierNames, CommandName, InsertDirection, Command, checkValidity, checkCommands, getCommand } from '../utils/check_commands'
 import { perturb } from '../utils/perturb';
+import { format } from '../utils/format';
 import CodeMirror from "@uiw/react-codemirror";
 import { langs } from '@uiw/codemirror-extensions-langs'
 import {
@@ -135,7 +136,7 @@ export const Sketch: React.FC<SketchProps> = ({ state, code, updateState, stateA
       </div>
       {state.addedFunction &&
         <h4 className="added-function">
-          {state.addedFunction}
+          {format(state.addedFunction)}
         </h4>
       }
     </div>
