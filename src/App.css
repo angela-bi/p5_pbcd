@@ -77,6 +77,8 @@ body::after {
 #left {
     width: var(--left-width);
     position: fixed;
+    max-height: calc(100% - 40px);
+    overflow: scroll;
 }
 
 #right {
