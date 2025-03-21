@@ -38,4 +38,5 @@ export function getCommand(functionName: string) {
             return c
         }
     }
+    return commands[0] // returns default_command
 }

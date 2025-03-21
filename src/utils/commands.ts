@@ -23,7 +23,10 @@ const translate = { name: "translate", valid: ["circle", "ellipse", "arc", "line
 const push = { name: "push", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Below", paired_commands: ["translate", "pop"], num_params: 0 } as Command
 const pop = { name: "pop", valid: ["applyMatrix"], invalid: [], default_valid: false, direction: "Below", num_params: 0 } as Command
 
-const commands = [circle, ellipse, fill, noFill, translate, push, pop, line, rect, quad, square, triangle, erase, noErase];
+const default_command = { name: "default", valid: [], invalid: [], default_valid: false, direction: "Below", num_params: 0} as Command
+// used as a stand in for cursorCommand where the clicked command is not defined here
+
+const commands = [default_command, circle, ellipse, fill, noFill, translate, push, pop, line, rect, quad, square, triangle, erase, noErase];
 const command_names = commands.map(command => command.name)
 const params = ['frameCount', 'mouseX', 'mouseY'];
 const operators = ["*", "+"] as ("*" | "+" | "-" | "/" | "%" | "**" | "&" | "|" | ">>" | ">>>" | "<<" | "^" | "==" | "===" | "!=" | "!==" | "in" | "instanceof" | ">" | "<" | ">=" | "<=" | "|>")[]

@@ -292,7 +292,7 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
       let newNode: any | null = null;
       if (cursorCommand && dupNode) {
         switch (checkValidity(cursorCommand, insertCommand)) {
-          case 'Above': {
+          case 'Above': { // if the insertCommand can be inserted above the cursorCommand
             newNode = dupNode.insertBefore(makeCallExpression(insertCommand))
             break;
           }
@@ -323,6 +323,7 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
       }
 
     });
+    console.log('newPrograms', newPrograms)
     return newPrograms
   }
 }
