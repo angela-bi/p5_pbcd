@@ -103,9 +103,9 @@ function draw() {
     return { i, j };
   }
   function updateCodeState(curr_pos: Loc) {
-    const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 10).sort((a, b) => a.index > b.index ? -1 : 1)
+    const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 10)
 
-    const programsWithTitles: any = {}
+    const programsWithTitles: { [key: string]: number } = {}
     newPrograms.forEach((insertion) => {
       if (insertion.index in programsWithTitles) {
         programsWithTitles[insertion.index]++
@@ -115,7 +115,7 @@ function draw() {
     })
 
     const actualNumSketches = Object.keys(programsWithTitles).map((key) => programsWithTitles[key])
-    console.log(actualNumSketches)
+    console.log("actualNumSketches", actualNumSketches)
 
     setNumSketches(actualNumSketches);
 
