@@ -69,7 +69,7 @@ body::after {
 .App > div {
     /* background-color: rgb(245, 245, 245); */
     background-color: #FFFFFF;
-    border: 1.5px solid var(--accent-bg3);
+    /* border: 1.5px solid var(--accent-bg3); */
     padding: 20px;
     border-radius: 5px;
 }
@@ -201,6 +201,7 @@ body::after {
     grid-auto-flow: column;
     grid-template-rows: 1fr;
     overflow-x: scroll;
+    padding-right: 70px;
 }
 
 .sketch-row h3 {
@@ -227,6 +228,26 @@ body::after {
     font-weight: 650;
     padding: 5px;
     border-radius: 5px;
+}
+
+.sketch-row .show-more-button {
+    position: absolute;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    transition: background 0.3s ease-in-out;
 }
 
 /* Sketches */
