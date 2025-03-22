@@ -235,9 +235,9 @@ body::after {
     top: 50%;
     right: 20px;
     transform: translateY(-50%);
-    
-    width: 60px;
-    height: 60px;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.9);
     border: 1px solid #ccc;
@@ -246,8 +246,9 @@ body::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1rem;
     transition: background 0.3s ease-in-out;
+    color:rgb(111, 111, 111);
 }
 
 /* Sketches */
@@ -259,12 +260,15 @@ body::after {
 }
 
 .sketch .iframe-wrapper {
-    display: flex;
-    overflow: hidden;
+    transform-origin: 0 0;
+    display: inline-block;
 }
 
 .sketch iframe {
-    border-radius: 5px;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: none;
 }
 
 .sketch-row .sketch iframe {
