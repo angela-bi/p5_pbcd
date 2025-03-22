@@ -52,7 +52,6 @@ export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, i
         {numSketches[index] > 5 && limit !== numSketches[index] &&
           <button onClick={() => {
             setLimit(Math.min(limit + 5, numSketches[index]))
-            console.log(limit)
           }} className="show-more-button">
             {'>'}
           </button>

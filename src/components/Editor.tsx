@@ -180,7 +180,6 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
 
     try {
       const clicked_pos = { start: curr_pos, end: curr_pos } as Loc;
-      console.log("click update!")
       updateCodeState(clicked_pos)
     } catch (error) {
       // if parsing error
