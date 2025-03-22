@@ -103,7 +103,8 @@ function draw() {
     return { i, j };
   }
   function updateCodeState(curr_pos: Loc) {
-    const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 10)
+    const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 10).sort((a, b) => a.index > b.index ? -1 : 1)
+    console.log('newPrograms after sample', newPrograms)
 
     const programsWithTitles: { [key: string]: number } = {}
     newPrograms.forEach((insertion) => {

@@ -122,12 +122,14 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       traverse(ast, {
         enter(path) {
           if (path_contains_pos(path, { start: cursor_position, end: cursor_position })) {
-            if (is_param(path)) {
+            if (is_param(path)) { // function arguments
               result = true
-            } else if (is_function(path) && path.node.type == "CallExpression") {
+            } else if (is_function(path) && path.node.type == "CallExpression") { // functions
               if (path.node.callee.type === "Identifier" && command_names.includes(path.node.callee.name)) {
                 result = true
               }
+            } else if (path.isExpression()) {
+              console.log(path.node) // make it so that this function returns start and end = change highlighted region to whole binary expression
             }
           }
         }
