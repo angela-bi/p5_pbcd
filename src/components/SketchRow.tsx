@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { StateObject } from '../App'
 import { Sketch } from './Sketch'
 import * as parser from "@babel/parser";
@@ -24,6 +24,7 @@ const SPECIAL_ROWS: { [k: string]: string } = { "Special": "Parameter Mutations"
 export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked }) => {
   // get sketches for that row to render
   const [limit, setLimit] = useState<number>(4);
+
   const start = numSketches.slice(0, index).reduce((sum, val) => sum + val, 0) + 1
   const end = start + Math.min(limit, numSketches[index])
   const sketches = stateArray.slice(start, end)
@@ -44,6 +45,12 @@ export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, i
 
   const assignedDisplayName = sketches[0]?.displayName;
   const special = SPECIAL_ROWS.hasOwnProperty(assignedDisplayName);
+  useEffect(() => {
+    if (special) {
+      setLimit(8)
+    }
+  }, []);
+
   const displayName = special ? SPECIAL_ROWS[assignedDisplayName] : assignedDisplayName;
 
   return (
