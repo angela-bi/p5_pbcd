@@ -180,6 +180,11 @@ body::after {
 
 /* Sketch rows */
 
+#sketch-rows {
+    display: flex;
+    flex-direction: column;
+}
+
 .sketch-row {
     border-top: 1px dashed var(--fade-color);
     padding-top: 10px;
@@ -207,6 +212,10 @@ body::after {
 .sketch-row h3 {
     font-size: 1.2em;
     margin: 5px 0;
+}
+
+.sketch-row[data-special="true"] {
+    order: -1;
 }
 
 .sketch-row[data-special="true"]::before {

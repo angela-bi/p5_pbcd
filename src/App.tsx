@@ -198,7 +198,6 @@ function draw() {
             {
               // where num is the number of sketches per row and index is the ith row
               numSketches.map((num, index) => (
-                <div key={index}>
                   <SketchRow
                     updateState={updateStateProperty}
                     stateArray={stateArray}
@@ -207,8 +206,8 @@ function draw() {
                     index={index}
                     setLastClicked={setLastClicked}
                     lastClicked={lastClicked}
+                    key={index}
                   />
-                </div>
               ))
             }
           </div>
