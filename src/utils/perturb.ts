@@ -47,7 +47,6 @@ export function samplePrograms(newPrograms: newInsertion[], maxFromEach: number)
   const programsIndicies: any = {}
   const shuffled = newPrograms
     .map(value => ({ value, sort: Math.random() }))
-    .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value)
   shuffled.forEach((insertion) => {
     if (insertion.index in programsIndicies) {

@@ -116,8 +116,8 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     if (editorViewRef.current) redo(editorViewRef.current);
   };
 
-  function valid_hover_highlight(ast: parser.ParseResult, cursor_position: number): boolean {
-    let result = false
+  function valid_hover_highlight(ast: parser.ParseResult, cursor_position: number) {
+    let result = null
     try {
       traverse(ast, {
         enter(path) {
@@ -128,8 +128,6 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
               if (path.node.callee.type === "Identifier" && command_names.includes(path.node.callee.name)) {
                 result = true
               }
-            } else if (path.isExpression()) {
-              console.log(path.node) // make it so that this function returns start and end = change highlighted region to whole binary expression
             }
           }
         }
@@ -169,9 +167,11 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     if (pos !== null) {
       const { from, to, text } = view.state.doc.lineAt(pos);
       let start = pos, end = pos;
+      console.log(text)
 
       while (start > from && /\w/.test(text[start - from - 1])) start--;
       while (end < to && /\w/.test(text[end - from])) end++;
+      console.log(start, end)
 
       view.dispatch({
         effects: highlightEffect.of({ from: start, to: end })
