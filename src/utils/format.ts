@@ -1,5 +1,10 @@
 function format(js: string): string {
     js = js.replace(/\s/g,'');
+
+    if (js.length <= 10) {
+        return js;
+    }
+
     let indent = 0;
     let ret = "";
     for (const c of js) {
