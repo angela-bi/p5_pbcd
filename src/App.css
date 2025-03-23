@@ -206,6 +206,7 @@ body::after {
     display: grid;
     grid-auto-flow: column;
     grid-template-rows: 1fr;
+    grid-auto-columns: max-content;
     overflow-x: scroll;
 }
 
@@ -241,7 +242,6 @@ body::after {
 
 .sketch-row[data-special="true"] > div {
     grid-template-rows: 1fr 1fr;
-    grid-template-columns: max-content;
 }
 
 .sketch-row[data-special="true"] h3 {
