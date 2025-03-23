@@ -1,5 +1,10 @@
 function format(js: string): string {
-    js = js.replace(/\s/g,'');
+    js = js.replace(/\s/g, ''
+          ).replace(/\+/g, " + "
+          ).replace(/\-/g, " - "
+          ).replace(/\*/g, " * "
+          ).replace(/\//g, " / "
+          ).replace(/\%/g, " % ");
 
     if (js.length <= 10) {
         return js;
