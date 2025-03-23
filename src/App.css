@@ -230,6 +230,7 @@ body::after {
 
 .sketch-row[data-special="true"] > div {
     grid-template-rows: 1fr 1fr;
+    grid-template-columns: max-content;
 }
 
 .sketch-row[data-special="true"] h3 {
