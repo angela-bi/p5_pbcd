@@ -181,7 +181,8 @@ function draw() {
             stateArray.map((state, index) => {
               if (index === 0) {
                 return (
-                  <Sketch
+                  <div className='scrollable-main-sketch'>
+                    <Sketch
                     stateArray={stateArray}
                     state={state}
                     code={state.sketchCode}
@@ -189,7 +190,9 @@ function draw() {
                     setNumSketches={setNumSketches}
                     setLastClicked={setLastClicked}
                     lastClicked={lastClicked}
-                    key={crypto.randomUUID()} />)
+                    key={crypto.randomUUID()} />
+                  </div>
+                  )
               }
             })
           }

@@ -82,6 +82,10 @@ body::after {
     overflow: scroll;
 }
 
+#left #output-pane .scrollable-main-sketch {
+    overflow: scroll;
+}
+
 #right {
     float: left;
     margin-left: calc(var(--left-width) + 20px);
