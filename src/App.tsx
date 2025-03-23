@@ -142,10 +142,12 @@ function draw() {
 
   }, []);
 
-  const firstState = stateArray[0]
+  const firstState = stateArray[0];
+
+  const dirty = firstState?.sketchCode != currentEditorCode!;
 
   return (
-    <div className="App">
+    <div className="App" data-dirty={dirty}>
       <div id="left">
         {firstState && (
           <div id="editor-pane">

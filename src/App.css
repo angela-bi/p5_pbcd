@@ -122,10 +122,24 @@ body::after {
 
 /* Editor */
 
+#editor-pane h2::after {
+    content: "(with un-run changes)";
+    font-weight: normal;
+    color: white;
+    transition: color ease 0.3s;
+    font-size: 0.8em;
+    margin-left: 10px;
+}
+
+.App[data-dirty="true"] #editor-pane h2::after {
+    color: var(--accent-bg);
+}
+
 .cm-editor {
     margin-bottom: 20px;
     border: 1.5px solid #DDDDDD;
     font-size: 1.2em;
+    position: relative;
 }
 
 .cm-focused {
@@ -134,6 +148,22 @@ body::after {
 
 .cm-activeLineGutter, .cm-activeLine {
     background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.cm-editor::after {
+    content: "";
+    position: absolute;
+    top: -1.5px;
+    right: -1.5px;
+    bottom: -1.5px;
+    left: -1.5px;
+    border: 0px solid var(--accent-bg);
+    transition: border-width ease 0.3s;
+    pointer-events: none;
+}
+
+.App[data-dirty="true"] .cm-editor::after {
+    border-width: 4px;
 }
 
 /* Cursor */
@@ -222,7 +252,7 @@ body::after {
 
 .sketch-row h3 {
     font-size: 1.2em;
-    margin: 5px 0;
+    margin-bottom: 10px;
     font-weight: bold;
 }
 
@@ -304,7 +334,7 @@ body::after {
 }
 
 .sketch-row .sketch {
-    margin: 10px 10px 20px 0px;
+    margin: 0 10px 10px 0px;
     cursor: pointer !important;
     transition: all 0.3s;
     box-sizing: content-box;
