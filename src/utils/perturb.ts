@@ -63,77 +63,6 @@ export function samplePrograms(newPrograms: newInsertion[], maxFromEach: number)
 }
 
 
-// given an ast, path representing the function (returned by find_function), and position that user clicked
-// returns three arrays of the same structure: [row_1, row_2, ... ] where row_i represents function i. 
-// each row_i has n items, where n=number of function i's arguments e.g. if row_i represents ellipse, n=4
-
-
-// function perturb_params(funcNode:NodePath){
-
-
-// }
-
-
-// function perturb_params(ast: parser.ParseResult<t.File>, funcPath: NodePath<t.Node>, curr_pos: Loc) {
-//   let addedFunc: string[] = []; // one component per param suggestion
-//   let possibleCode: string[] = [];
-//   let line: Loc[] = [];
-
-//   for (let i = 0; i < params.length; i++) {
-//     const clonedAst = t.cloneNode(ast, true, false);
-//     const clonedPath = traverse(clonedAst, {
-//       enter(clonedPath) {
-//         if (
-//           clonedPath.node.loc?.start.index === funcPath.node.start &&
-//           clonedPath.node.loc?.end.index === funcPath.node.end &&
-//           t.isCallExpression(clonedPath.node)
-//         ) {
-//           clonedPath.stop();
-//           if (t.isCallExpression(clonedPath.node) && t.isIdentifier(clonedPath.node.callee)) {
-//             const callee = t.identifier(clonedPath.node.callee.name);
-
-//             let curr_arg: t.Expression | undefined = undefined;
-//             const updatedArgs = clonedPath.node.arguments.map((arg, index) => {
-//               curr_arg = arg as t.Expression;
-//               if (
-//                 arg.loc &&
-//                 arg.loc.start.index <= curr_pos.start &&
-//                 arg.loc.end.index >= curr_pos.end
-//               ) {
-//                 return t.identifier(params[i]);
-//               }
-//               return t.isNumericLiteral(arg) ? t.numericLiteral(arg.value) : arg;
-//             });
-
-//             const callExpression = t.callExpression(callee, updatedArgs);
-//             addedFunc.push(generate(callExpression).code);
-//             clonedPath.replaceWith(callExpression);
-//             possibleCode.push(generate(clonedAst).code);
-//             line.push({ start: curr_pos.start, end: curr_pos.end });
-
-//             for (let j = 0; j < operators.length; j++) {
-//               const updatedArgs = clonedPath.node.arguments.map((arg, index) => {
-//                 if (
-//                   !t.isNumericLiteral(arg)
-//                 ) {
-//                   return t.binaryExpression(operators[j], t.identifier(params[i]), curr_arg!);
-//                 }
-//                 return arg
-//               });
-
-//               const callExpression = t.callExpression(callee, updatedArgs);
-//               addedFunc.push(generate(callExpression).code);
-//               clonedPath.replaceWith(callExpression);
-//               possibleCode.push(generate(clonedAst).code);
-//               line.push({ start: curr_pos.start, end: curr_pos.end });
-//             }
-//           }
-//         }
-//       }
-//     })
-//   };
-//   return { addedFunc, possibleCode, line }
-// }
 //finds a node by its ID
 function findNodeByID(newProgram: t.Node, nodeWithID: t.Node): NodePath<t.Node> | undefined {
   let find = undefined
@@ -276,20 +205,19 @@ interface newInsertion {
   program: string
 }
 
-
-
-
 //Given a Call Expression Path, returns a list of all the valid programs with new commands inserted
 function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: parser.ParseResult<t.File>) {
   let newPrograms: newInsertion[] = []
   const callee = (functionPath.node as t.CallExpression).callee
   if (callee.type === "Identifier") {
     const cursorCommand = getCommand(callee.name)
+    console.log(cursorCommand)
     commands.forEach(insertCommand => {
       let clonedAST = t.cloneNode(ast, true, false)
       const dupNode = findNodeByID(clonedAST, functionPath.node)
       let newNode: any | null = null;
       if (cursorCommand && dupNode) {
+        console.log(checkValidity(cursorCommand, insertCommand), insertCommand);
         switch (checkValidity(cursorCommand, insertCommand)) {
           case 'Above': { // if the insertCommand can be inserted above the cursorCommand
             newNode = dupNode.insertBefore(makeCallExpression(insertCommand))
@@ -300,16 +228,22 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
             break;
           }
         }
+        console.log(newNode)
 
         if (newNode !== null) {
-          const exprNode = newNode[0].node.expression
+          let exprNode = null
+          if (newNode[0].type == 'ExpressionStatement') {
+            exprNode = newNode[0].node.expression // this doesn't exist for non-callExpressions
+          } else {
+            exprNode = newNode[0].node
+          }
+          console.log(exprNode)
           const newCallPath = findNodeByID(clonedAST, exprNode)
-          // console.log("newPath", newCallPath)
+          console.log(newCallPath) // issue: not finding all callpaths
           if (newCallPath && newCallPath.isCallExpression()) {
             // console.log(literalInsertions(newCallPath))
             perturbArguments(newCallPath, clonedAST, literalInsertions(newCallPath), 10).forEach(
               (program) => {
-                // console.log("perturbed", program)
                 newPrograms.push({ ...program, index: insertCommand.name })
               })
           }
