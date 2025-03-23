@@ -19,7 +19,7 @@ interface SketchRowProps {
   lastClicked: number;
 }
 
-const SPECIAL_ROWS: { [k: string]: string } = { "Special": "Parameter Mutations" };
+const SPECIAL_ROWS: { [k: string]: string } = { "Special": "Modify parameters" };
 
 export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked }) => {
   // get sketches for that row to render

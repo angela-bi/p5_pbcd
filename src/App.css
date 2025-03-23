@@ -209,9 +209,20 @@ body::after {
     overflow-x: scroll;
 }
 
+.sketch-row[data-special="false"] h3::before {
+    content: "Add ";
+    font-weight: normal;
+}
+
+.sketch-row[data-special="false"] h3::after {
+    content: " to code";
+    font-weight: normal;
+}
+
 .sketch-row h3 {
     font-size: 1.2em;
     margin: 5px 0;
+    font-weight: bold;
 }
 
 .sketch-row[data-special="true"] {
