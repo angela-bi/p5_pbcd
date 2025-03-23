@@ -38,12 +38,16 @@ function App() {
 function draw() {
   background(220);
   fill(0, 0, 0, 0)
-  ellipse(50, 50, 50, 50);
+  for (let i=0; i<10; i++) {
+    for (let j=0; j<10; j++) {
+      circle(i*50,j*50, frameCount%200)
+    }
+  }
 }`;
 
   const [stateArray, _setStateArray] = useState<StateObject[]>([]);
   const [numSketches, setNumSketches] = useState<number[]>([]);
-  const [lastClicked, setLastClicked] = useState<number>(114);
+  const [lastClicked, setLastClicked] = useState<number>(179);
   const [currentEditorCode, _setCurrentEditorCode] = useState<string>(defaultSketchCode)
 
   function setStateArray(

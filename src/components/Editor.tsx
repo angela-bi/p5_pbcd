@@ -162,6 +162,7 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     const state = view.state;
     const doc = state.doc;
     const curr_pos = pos; // the position our mouse clicked
+    console.log(curr_pos)
     setLastClicked(curr_pos)
     setCursorPosition(curr_pos)
     if (pos !== null) {
