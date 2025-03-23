@@ -122,8 +122,8 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       traverse(ast, {
         enter(path) {
           if (path_contains_pos(path, { start: cursor_position, end: cursor_position })) {
-            if (path.isNumericLiteral() || path.isBinaryExpression() || path.isDecimalLiteral()) { // function arguments
-              if (!(path.parentPath.isNumericLiteral() || path.parentPath.isBinaryExpression() || path.parentPath.isDecimalLiteral())) {
+            if (path.isNumericLiteral() || path.isBinaryExpression() || path.isDecimalLiteral() || is_param(path)) { // function arguments
+              if (!(path.parentPath!.isNumericLiteral() || path.parentPath!.isBinaryExpression() || path.parentPath!.isDecimalLiteral())) {
                 result = {start: path.node.start!, end: path.node.end!}
               }
             } else if (is_function(path) && path.node.type == "CallExpression") { // functions
@@ -170,11 +170,9 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     if (pos !== null) {
       const { from, to, text } = view.state.doc.lineAt(pos);
       let start = pos, end = pos;
-      console.log(text)
 
       while (start > from && /\w/.test(text[start - from - 1])) start--;
       while (end < to && /\w/.test(text[end - from])) end++;
-      console.log(start, end)
 
       view.dispatch({
         effects: highlightEffect.of({ from: start, to: end })
