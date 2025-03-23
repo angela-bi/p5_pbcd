@@ -60,7 +60,7 @@ export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, i
           <button onClick={() => {
             setLimit(Math.min(limit + 5, numSketches[index]))
           }} className="show-more-button">
-            {'>'}
+            <span>+</span>
           </button>
         }
       </div>
