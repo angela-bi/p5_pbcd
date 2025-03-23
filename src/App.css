@@ -236,7 +236,7 @@ body::after {
     left: -20px;
     bottom: 0;
     width: 5px;
-    background-color: var(--accent-bg);
+    /* background-color: var(--accent-bg); */
 }
 
 .sketch-row[data-special="true"] > div {
