@@ -148,9 +148,9 @@ function perturbLiteral(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.Fi
 //traverse the expression, applying patches at every applicable level, returns a randomized order
 function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResult<t.File>): newInsertion[] {
   let newPrograms: newInsertion[] = []
-  console.log("toplevelpath", topLevelPath)
+  //console.log("toplevelpath", topLevelPath)
   const mutations = generateMutations(topLevelPath)
-  console.log("mutations", mutations)
+  //console.log("mutations", mutations)
   mutations.forEach((mutationPatch) => {
     let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch)
     if (newProgram !== undefined) {
@@ -160,11 +160,11 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
 
   topLevelPath.traverse({
     enter(path) {
-      console.log("path", path)
+      //("path", path)
       mutations.forEach((mutationPatch) => {
-        console.log("patch", mutationPatch)
+        //console.log("patch", mutationPatch)
         let [newProgram, patchTitle] = applyPatch(path, ast, mutationPatch)
-        console.log("newprogram", newProgram, patchTitle)
+        //console.log("newprogram", newProgram, patchTitle)
         if (newProgram !== undefined) {
           newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
         }
@@ -211,13 +211,13 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
   const callee = (functionPath.node as t.CallExpression).callee
   if (callee.type === "Identifier") {
     const cursorCommand = getCommand(callee.name)
-    console.log(cursorCommand)
+    //console.log(cursorCommand)
     commands.forEach(insertCommand => {
       let clonedAST = t.cloneNode(ast, true, false)
       const dupNode = findNodeByID(clonedAST, functionPath.node)
       let newNode: any | null = null;
       if (cursorCommand && dupNode) {
-        console.log(checkValidity(cursorCommand, insertCommand), insertCommand);
+        //console.log(checkValidity(cursorCommand, insertCommand), insertCommand);
         switch (checkValidity(cursorCommand, insertCommand)) {
           case 'Above': { // if the insertCommand can be inserted above the cursorCommand
             newNode = dupNode.insertBefore(makeCallExpression(insertCommand))
@@ -228,7 +228,6 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
             break;
           }
         }
-        console.log(newNode)
 
         if (newNode !== null) {
           let exprNode = null
@@ -237,11 +236,8 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
           } else {
             exprNode = newNode[0].node
           }
-          console.log(exprNode)
           const newCallPath = findNodeByID(clonedAST, exprNode)
-          console.log(newCallPath) // issue: not finding all callpaths
           if (newCallPath && newCallPath.isCallExpression()) {
-            // console.log(literalInsertions(newCallPath))
             perturbArguments(newCallPath, clonedAST, literalInsertions(newCallPath), 10).forEach(
               (program) => {
                 newPrograms.push({ ...program, index: insertCommand.name })

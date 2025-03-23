@@ -116,17 +116,19 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     if (editorViewRef.current) redo(editorViewRef.current);
   };
 
-  function valid_hover_highlight(ast: parser.ParseResult, cursor_position: number) {
+  function valid_hover_highlight(ast: parser.ParseResult, cursor_position: number): {start: number, end: number} | null {
     let result = null
     try {
       traverse(ast, {
         enter(path) {
           if (path_contains_pos(path, { start: cursor_position, end: cursor_position })) {
-            if (is_param(path)) { // function arguments
-              result = true
+            if (path.isNumericLiteral() || path.isBinaryExpression() || path.isDecimalLiteral()) { // function arguments
+              if (!(path.parentPath.isNumericLiteral() || path.parentPath.isBinaryExpression() || path.parentPath.isDecimalLiteral())) {
+                result = {start: path.node.start!, end: path.node.end!}
+              }
             } else if (is_function(path) && path.node.type == "CallExpression") { // functions
               if (path.node.callee.type === "Identifier" && command_names.includes(path.node.callee.name)) {
-                result = true
+                result = {'start': path.node.start!, 'end': path.node.end!}
               }
             }
           }
@@ -149,9 +151,10 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
       while (end < to && /\w/.test(text[end - from])) end++;
 
       let ast = parseCode(code)!
-      if (valid_hover_highlight(ast, pos)) {
+      const highlight_start_end = valid_hover_highlight(ast, pos)
+      if (highlight_start_end != null) {
         view.dispatch({
-          effects: highlightEffect.of({ from: start, to: end })
+          effects: highlightEffect.of({ from: highlight_start_end['start'], to: highlight_start_end['end'] })
         });
       }
     }
@@ -162,7 +165,6 @@ export const Editor: React.FC<EditorProps> = ({ code, setCurrentEditorCode, upda
     const state = view.state;
     const doc = state.doc;
     const curr_pos = pos; // the position our mouse clicked
-    console.log(curr_pos)
     setLastClicked(curr_pos)
     setCursorPosition(curr_pos)
     if (pos !== null) {
