@@ -164,7 +164,7 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
   }
 
   const insertionLiterals = literalInsertions(topLevelPath, false, decimal)
-  console.log("mutations", mutations)
+  // console.log("mutations", mutations)
   mutations.forEach((mutationPatch) => {
     insertionLiterals.forEach((insertionLiteral) => {
       let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch, insertionLiteral, partial)
@@ -184,10 +184,10 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
     })
   })
 
-  console.log("newProgramsMutate", newPrograms)
+  // console.log("newProgramsMutate", newPrograms)
   topLevelPath.traverse({
     enter(path) {
-      console.log("path", path)
+      // console.log("path", path)
 
       if (path.isIdentifier() && path.parentPath.isCallExpression() && path.parentPath.node.callee === path.node) {
 
@@ -210,7 +210,7 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
       }
     }
   })
-  console.log("newProgramsOut", newPrograms)
+  // console.log("newProgramsOut", newPrograms)
   const uniqueArray = newPrograms.filter((value, index) => {
 
     let program = value.program
@@ -330,7 +330,7 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
       }
 
     });
-    console.log('newPrograms', newPrograms)
+    // console.log('newPrograms', newPrograms)
     return newPrograms
   }
 }
@@ -401,7 +401,7 @@ export function perturb(
     );
     return newPrograms
   }
-  console.log("AST", ast)
+  // console.log("AST", ast)
   const cursorPosition = currPos.start;
 
   //Add ID's to each node so we can retrieve them later
@@ -471,7 +471,7 @@ export function perturb(
         if (isValidMutationExpression(path)) {
           const newExpressions = mutateExpression(path, ast)
           newPrograms.push(...newExpressions)
-          console.log("Calling mutate", newExpressions)
+          // console.log("Calling mutate", newExpressions)
           // only stop if we hit a variable declarator, let expression, 
           if (path.parentPath.isVariableDeclarator() || path.parentPath.isCallExpression()) {
 

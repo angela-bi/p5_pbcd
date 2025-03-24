@@ -129,7 +129,7 @@ function draw() {
     const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 50).sort(sortSketchRows)
 
     // .sort((a, b) => a.index > b.index || a.index === 'Special' ? -1 : (a.index < b.index || b.index === 'Special' ? 1 : 0))
-    console.log(newPrograms)
+    // console.log(newPrograms)
     const programsWithTitles: { [key: string]: number } = {}
     newPrograms.forEach((insertion) => {
       // let index = 

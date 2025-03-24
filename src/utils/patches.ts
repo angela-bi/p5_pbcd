@@ -19,14 +19,14 @@ function findVariablesInScope(path: NodePath) {
         }
     })
     if (path.scope.getBlockParent()) {
-        console.log("block parent", path.scope.getBlockParent())
+        // console.log("block parent", path.scope.getBlockParent())
         const blockBindings = Object.values(path.scope.getBlockParent().getAllBindings())
-        console.log("block bindings", blockBindings)
+        // console.log("block bindings", blockBindings)
         blockBindings.forEach(variable => {
-            console.log(path.node.loc?.start.line, variable.identifier.loc?.end.line)
+            // console.log(path.node.loc?.start.line, variable.identifier.loc?.end.line)
 
             if (path.node.loc?.start.line && variable.identifier.loc?.end.line && variable.identifier.loc?.end.line < path.node.loc?.start.line) {
-                console.log("add Variable", variable)
+                // console.log("add Variable", variable)
                 if (bindings.find(x => x.identifier.name === variable.identifier.name) === undefined) {
                     bindings.push(variable)
                 }
@@ -41,7 +41,7 @@ function findVariablesInScope(path: NodePath) {
     }
     //TODO: Not searching API Calls correctly
     const return_bindings = bindings.filter(variable => variable.kind === "let" || variable.kind === "var" || variable.kind === "const")
-    console.log("found variables", return_bindings.map(x => x.identifier.name))
+    // console.log("found variables", return_bindings.map(x => x.identifier.name))
     return return_bindings
 }
 
