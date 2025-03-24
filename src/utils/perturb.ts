@@ -422,7 +422,7 @@ export function perturb(
         newPrograms.push(...newCommands)
 
         //Only perturb the inner expressions if we're clicking on the function call, not the inside 
-        console.log(cursorPosition)
+        // console.log(cursorPosition)
         if (path.node.callee.end && cursorPosition < path.node.callee.end) {
           const argumentReplacements: { [key: number]: newInsertion[] } = {}
           path.node.arguments.forEach((arg, index) => {
