@@ -421,37 +421,43 @@ export function perturb(
         // console.log("NewCommands", newCommands)
         newPrograms.push(...newCommands)
 
-        const argumentReplacements: { [key: number]: newInsertion[] } = {}
-        path.node.arguments.forEach((arg, index) => {
-          const argumentPath = findNodeByID(ast, arg)
-          if (argumentPath) {
-            const newExpressions = mutateExpression(argumentPath, ast, true)
+        //Only perturb the inner expressions if we're clicking on the function call, not the inside 
+        console.log(cursorPosition)
+        if (path.node.callee.end && cursorPosition < path.node.callee.end) {
+          const argumentReplacements: { [key: number]: newInsertion[] } = {}
+          path.node.arguments.forEach((arg, index) => {
+            const argumentPath = findNodeByID(ast, arg)
+            if (argumentPath) {
+              const newExpressions = mutateExpression(argumentPath, ast, true)
 
-            if (index in argumentReplacements) {
-              argumentReplacements[index].push(...newExpressions)
-            } else {
-              argumentReplacements[index] = [...newExpressions]
+              if (index in argumentReplacements) {
+                argumentReplacements[index].push(...newExpressions)
+              } else {
+                argumentReplacements[index] = [...newExpressions]
+              }
+            }
+          })
+          for (var i = 0; i < 100; i++) {
+            let newAST = t.cloneNode(ast);
+            let callPath = findNodeByID(newAST, path.node)
+            if (callPath && callPath.node.type === "CallExpression") {
+              callPath.node.arguments.forEach((arg, index) => {
+                // console.log("LOOKING AT ARG", generate(arg).code)
+                const argPath = findNodeByID(newAST, arg)
+                const newArgs = argumentReplacements[index]
+                const newArg = newArgs[Math.floor(Math.random() * newArgs.length)]
+                if (newArg) {
+                  // console.log("NEWARG", newArg)
+                  argPath?.replaceWith((newArg.program as unknown as NodePath<t.Node>))
+                }
+              })
+              const title = "(" + callPath.node.arguments.map(arg => generate(arg).code).join(",") + ")"
+              newPrograms.push({ index: "Special", title: title, program: generate(newAST).code })
+              // console.log("ADDED ARGS",)
             }
           }
-        })
-        for (var i = 0; i < 100; i++) {
-          let newAST = t.cloneNode(ast);
-          let callPath = findNodeByID(newAST, path.node)
-          if (callPath && callPath.node.type === "CallExpression") {
-            callPath.node.arguments.forEach((arg, index) => {
-              const argPath = findNodeByID(newAST, arg)
-              const newArgs = argumentReplacements[index]
-              const newArg = newArgs[Math.floor(Math.random() * newArgs.length)]
-              if (newArg) {
-                // console.log("NEWARG", newArg)
-                argPath?.replaceWith((newArg.program as unknown as NodePath<t.Node>))
-              }
-            })
-            const title = "(" + callPath.node.arguments.map(arg => generate(arg).code).join(",") + ")"
-            newPrograms.push({ index: "Special", title: title, program: generate(newAST).code })
-            // console.log("ADDED ARGS",)
-          }
         }
+
         // console.log("argumentOptions", argumentReplacements)
       }
     },

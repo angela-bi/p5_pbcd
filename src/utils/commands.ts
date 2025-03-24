@@ -33,6 +33,6 @@ const default_command = { name: "default", valid: [], invalid: [], default_valid
 const commands = [default_command, scale, rotate, stroke, noStroke, ellipse, fill, noFill, translate, line, quad, triangle, erase, noErase];
 const command_names = commands.map(command => command.name)
 const params = ['frameCount', 'mouseX', 'mouseY'];
-const operators = ["*", "+"] as ("*" | "+" | "-" | "/" | "%" | "**" | "&" | "|" | ">>" | ">>>" | "<<" | "^" | "==" | "===" | "!=" | "!==" | "in" | "instanceof" | ">" | "<" | ">=" | "<=" | "|>")[]
+const operators = ["*", "+"] as ("*" | "+" | "-" | "/" | "%" | "&" | "|" | ">>" | ">>>" | "<<" | "^" | "==" | "===" | "!=" | "!==" | "in" | "instanceof" | ">" | "<" | ">=" | "<=" | "|>")[]
 
 export { commands, command_names, params, operators }
