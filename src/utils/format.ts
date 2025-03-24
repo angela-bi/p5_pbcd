@@ -7,11 +7,13 @@ function format(js: string): string {
 
     let indent = 0;
     let ret = "";
-    for (const c of js) {
-        if (c == "(") {
+    for (let i = 0; i < js.length; i++) {
+        const c = js.at(i)
+        if (c === "(" && js.slice(i).indexOf(")") > 5 && i > 0 && js.at(i - 1) !== " ") {
+
             indent += 1;
             ret += "(\n" + "  ".repeat(indent);
-        } else if (c == ",") {
+        } else if (c === ",") {
             ret += ",\n" + "  ".repeat(indent);
         } else {
             ret += c;

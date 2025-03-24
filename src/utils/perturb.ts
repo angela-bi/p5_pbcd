@@ -1,11 +1,12 @@
 import * as parser from "@babel/parser";
-import traverse, { NodePath } from "@babel/traverse";
+import traverse, { Binding, NodePath } from "@babel/traverse";
 import * as t from "@babel/types";
 import generate, { GeneratorResult } from "@babel/generator";
 import { StateObject } from "../App";
 import { checkCommands, checkValidity, Command, getCommand, InsertDirection } from '../utils/check_commands'
 import { commands, params, operators } from './commands'
 import { generateMutations, literalInsertions } from "./patches";
+import { current } from "@reduxjs/toolkit";
 
 export type Loc = {
   start: number,
@@ -64,6 +65,8 @@ export function samplePrograms(newPrograms: newInsertion[], maxFromEach: number)
 
 
 //finds a node by its ID
+
+
 function findNodeByID(newProgram: t.Node, nodeWithID: t.Node): NodePath<t.Node> | undefined {
   let find = undefined
   if (nodeWithID?.extra !== undefined) {
@@ -101,7 +104,7 @@ function makeCallExpression(command: Command) {
 //"All" premutates all the arguments or just some 
 function perturbArguments(functionPath: NodePath<t.CallExpression>, ast: parser.ParseResult<t.File>, values: (t.NumericLiteral | t.Identifier | t.Node)[], num_programs: number, all: Boolean = true,): newInsertion[] {
   const newPrograms: newInsertion[] = []
-  if (functionPath && "node" in functionPath && "arguments" in functionPath.node) {
+  if (functionPath && functionPath.node && functionPath.node.arguments) {
     for (var i = 0; i < num_programs; i++) {
       let newAST = t.cloneNode(ast);
       functionPath.node.arguments.forEach((argumentNode) => {
@@ -110,20 +113,21 @@ function perturbArguments(functionPath: NodePath<t.CallExpression>, ast: parser.
         if (argumentPath) {
           let [perturbAST, title] = perturbLiteral(argumentPath, newAST, substitution)
           newAST = perturbAST ?? newAST
-          if (!all && newAST) {
-            const newFuncNode = findNodeByID(newAST, functionPath.node)
-            if (newFuncNode) {
-              newPrograms.push({ index: "Test", title: generate(newFuncNode.node).code, program: generate(newAST).code })
-            }
-          }
+          // if (!all && newAST) {
+          //   const newFuncNode = findNodeByID(newAST, functionPath.node)
+          //   if (newFuncNode) {
+          //     newPrograms.push({ index: "Test", title: generate(newFuncNode.node).code, program: generate(newAST).code })
+          //   }
+          // }
         }
-        if (all && newAST) {
-          const newFuncNode = findNodeByID(newAST, functionPath.node)
-          if (newFuncNode) {
-            newPrograms.push({ index: "Test", title: generate(newFuncNode.node).code, program: generate(newAST).code })
-          }
-        }
+
       })
+      if (all && newAST !== undefined) {
+        const newFuncNode = findNodeByID(newAST, functionPath.node)
+        if (newFuncNode && newPrograms.findIndex(x => x.program === generate(newAST).code) === -1) {
+          newPrograms.push({ index: "", title: generate(newFuncNode.node).code, program: generate(newAST).code })
+        }
+      }
     }
 
   }
@@ -135,7 +139,7 @@ function perturbLiteral(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.Fi
     if (path.isNumericLiteral()) {
       // value.extra = {}
       // value.extra["id"] = crypto.randomUUID()
-      path.replaceInline(value)
+      path.replaceWith(value)
       return [path]
     } else {
       return [undefined]
@@ -150,39 +154,65 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
   let newPrograms: newInsertion[] = []
   //console.log("toplevelpath", topLevelPath)
   const mutations = generateMutations(topLevelPath)
-  //console.log("mutations", mutations)
+
+  let decimal = false
+
+  if (topLevelPath.parentPath && topLevelPath.parentPath.isCallExpression() && topLevelPath.parentPath.node.callee.type === "Identifier") {
+    decimal = ["scale", "rotate"].indexOf(topLevelPath.parentPath.node.callee.name) > -1
+  }
+
+  const insertionLiterals = literalInsertions(topLevelPath, false, decimal)
+  console.log("mutations", mutations)
   mutations.forEach((mutationPatch) => {
-    let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch)
-    if (newProgram !== undefined) {
-      newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
-    }
+    // const SAMPLE_NUM
+    insertionLiterals.forEach((insertionLiteral) => {
+      let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch, insertionLiteral)
+      if (newProgram !== undefined && insertionLiteral.type !== "NumericLiteral") {
+        newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
+      }
+    })
   })
 
+  console.log("newProgramsMutate", newPrograms)
   topLevelPath.traverse({
     enter(path) {
-      //("path", path)
-      mutations.forEach((mutationPatch) => {
-        //console.log("patch", mutationPatch)
-        let [newProgram, patchTitle] = applyPatch(path, ast, mutationPatch)
-        //console.log("newprogram", newProgram, patchTitle)
-        if (newProgram !== undefined) {
-          newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
-        }
-      })
+      console.log("path", path)
+
+      if (path.isIdentifier() && path.parentPath.isCallExpression() && path.parentPath.node.callee === path.node) {
+
+      } else {
+        mutations.forEach((mutationPatch) => {
+          insertionLiterals.forEach((insertionLiteral) => {
+            let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch, insertionLiteral)
+            if (newProgram !== undefined) {
+              newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
+            }
+          })
+        })
+      }
     }
   })
-  const shuffled = newPrograms
+  console.log("newProgramsOut", newPrograms)
+  const uniqueArray = newPrograms.filter((value, index) => {
+    const _value = JSON.stringify(value);
+    return index === newPrograms.findIndex(obj => {
+      return JSON.stringify(obj) === _value;
+    });
+  });
+  const shuffled = uniqueArray
     .map(value => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value)
+
+
   return shuffled
 }
 
 //Given a patch, make a new AST, apply the patch, and return the ast
-function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>, patch: (path: NodePath) => [NodePath | undefined, string?]): [parser.ParseResult<t.File> | undefined, string?] {
+function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>, patch: (path: NodePath, literal?: t.Identifier | t.NumericLiteral | t.Expression) => [NodePath | undefined, string?], literal?: t.Identifier | t.NumericLiteral | t.Expression): [parser.ParseResult<t.File> | undefined, string?] {
   let clonedAST = t.cloneNode(ast, true, false)
   const dupPath = findNodeByID(clonedAST, nodePath.node)!
-  let [replacementNode, title] = patch(dupPath)
+  let [replacementNode, title] = literal ? patch(dupPath, literal) : patch(dupPath)
   if (replacementNode && replacementNode.parentPath !== null) {
     traverse(clonedAST, {
       enter(path) {
@@ -199,7 +229,7 @@ function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>,
   return [undefined, undefined]
 
 }
-interface newInsertion {
+export interface newInsertion {
   index: string,
   title: string,
   program: string
@@ -227,20 +257,35 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
             newNode = dupNode.insertAfter(makeCallExpression(insertCommand))
             break;
           }
+          case null: {
+            break;
+          }
+          default: {
+            break
+          }
         }
 
         if (newNode !== null) {
           let exprNode = null
-          if (newNode[0].type == 'ExpressionStatement') {
+          if (newNode[0].type === 'ExpressionStatement') {
             exprNode = newNode[0].node.expression // this doesn't exist for non-callExpressions
           } else {
             exprNode = newNode[0].node
           }
           const newCallPath = findNodeByID(clonedAST, exprNode)
           if (newCallPath && newCallPath.isCallExpression()) {
-            perturbArguments(newCallPath, clonedAST, literalInsertions(newCallPath), 10).forEach(
+            // console.log(literalInsertions(newCallPath))
+            let decimal = false
+            if (newCallPath.node.callee.type === "Identifier") {
+              decimal = ["scale", "rotate"].indexOf(newCallPath.node.callee.name) > -1
+            }
+            perturbArguments(newCallPath, clonedAST, literalInsertions(dupNode, true, decimal), 30).forEach(
               (program) => {
-                newPrograms.push({ ...program, index: insertCommand.name })
+                let index = insertCommand.name
+                if (["noFill", "noStroke", "erase"].indexOf(index) > -1) {
+                  index = "Style Options"
+                }
+                newPrograms.push({ ...program, index: index })
               })
           }
 
@@ -255,6 +300,36 @@ function findValidInsertCommands(functionPath: NodePath<t.CallExpression>, ast: 
     console.log('newPrograms', newPrograms)
     return newPrograms
   }
+}
+function isValidMutationExpression(path: NodePath<t.Node>): boolean {
+  if (path.parentPath) {
+
+    //If our current path isn't a valid expression, reject
+    if (!(path.isNumericLiteral() || path.isBinaryExpression() || path.isDecimalLiteral() || path.isIdentifier())) {
+      return false
+    }
+
+    if (path.isIdentifier() && path.parentPath.isCallExpression() && path.parentPath.node.callee === path.node) {
+      return false
+    }
+
+    //If we're in the top of a for loop or while loop, reject
+    if (path.parentPath.isWhile() || path.parentPath.isForXStatement() || path.parentPath.isForStatement()) {
+      return false
+    }
+
+
+    //check if the parent of this node is not another expression, and if is, reject 
+    if ((path.parentPath.isNumericLiteral() || path.parentPath.isBinaryExpression() || path.parentPath.isDecimalLiteral())) {
+      return false
+    }
+
+
+    return true
+  } else {
+    return false
+  }
+
 }
 function checkPosition(path: NodePath<t.Node>, cursorPosition: number) {
   if (path.node.start && path.node.end) {
@@ -271,6 +346,12 @@ function checkPosition(path: NodePath<t.Node>, cursorPosition: number) {
 // 1. First array: The whole program (possible code)
 // 2. The function to be added
 // 3. The line to add the function on
+
+// FUNCTION FLOW DIAGRAM
+
+//perturb -> (if callexpression) -> findValidInsertCommands -> (for each valid command to insert) -> perturbArguments -> (for each argument) perturbLiteral -> applyPatch
+//        -> (if isValidMutationExpression) -> mutateExpression -> (for each generateMutation, and each child node) applyPatch
+
 export function perturb(
   code: string,
   currPos: Loc,
@@ -287,7 +368,7 @@ export function perturb(
     );
     return newPrograms
   }
-
+  console.log("AST", ast)
   const cursorPosition = currPos.start;
 
   //Add ID's to each node so we can retrieve them later
@@ -298,13 +379,31 @@ export function perturb(
     }
   })
 
-  console.log("AST", ast)
+
   traverse(ast, {
     CallExpression: function (path) {
       if (checkPosition(path, cursorPosition)) {
         const newCommands = findValidInsertCommands(path, ast)!
+        //TODO:perturb arguments of current function
         // console.log("NewCommands", newCommands)
         newPrograms.push(...newCommands)
+
+
+        let decimal = false
+        if (path.node.callee.type === "Identifier") {
+          decimal = ["scale", "rotate"].indexOf(path.node.callee.name) > -1
+        }
+        path.node.arguments.forEach((arg) => {
+          const argumentPath = findNodeByID(ast, arg)
+          if (argumentPath && isValidMutationExpression(argumentPath)) {
+            const newExpressions = mutateExpression(argumentPath, ast)
+            newPrograms.push(...newExpressions)
+          }
+        })
+        // perturbArguments(path, ast, literalInsertions(path, true,decimal), 100).forEach(
+        //   (program) => {
+        //     newPrograms.push({ ...program, index: insertCommand.name })
+        //   })
       }
 
     },
@@ -314,15 +413,11 @@ export function perturb(
         // console.log("Expression", generate(path.node))
         // console.log("Expression", path)
       }
-      if (checkPosition(path, cursorPosition)) {
-        if (path.isNumericLiteral() || path.isBinaryExpression() || path.isDecimalLiteral()) {
-          //check if the parent of this node is not another expression, and if is, reject 
-          if (!(path.parentPath.isNumericLiteral() || path.parentPath.isBinaryExpression() || path.parentPath.isDecimalLiteral())) {
-
-            const newExpressions = mutateExpression(path, ast)
-            newPrograms.push(...newExpressions)
-            console.log("Calling mutate", newExpressions)
-          }
+      if (checkPosition(path, cursorPosition) && path.parentPath !== null) {
+        if (isValidMutationExpression(path)) {
+          const newExpressions = mutateExpression(path, ast)
+          newPrograms.push(...newExpressions)
+          console.log("Calling mutate", newExpressions)
           // only stop if we hit a variable declarator, let expression, 
           if (path.parentPath.isVariableDeclarator() || path.parentPath.isCallExpression()) {
 

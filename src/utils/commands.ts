@@ -9,8 +9,11 @@ const rect = { name: "rect", valid: [], invalid: ["vertex"], default_valid: true
 const square = { name: "square", valid: [], invalid: ["vertex"], default_valid: true, direction: "Below", num_params: 3 } as Command
 const triangle = { name: "triangle", valid: [], invalid: ["vertex"], default_valid: true, direction: "Below", num_params: 6 } as Command
 
-const fill = { name: "fill", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Above", num_params: 3 } as Command
-const noFill = { name: "noFill", valid: ["fill"], invalid: [], default_valid: false, direction: "Below", paired_commands: [], num_params: 0 } as Command
+const fill = { name: "fill", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: true, direction: "Above", num_params: 3 } as Command
+const noFill = { name: "noFill", valid: [], invalid: [], default_valid: true, direction: "Above", paired_commands: [], num_params: 0 } as Command
+
+const stroke = { name: "stroke", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Above", num_params: 3 } as Command
+const noStroke = { name: "noStroke", valid: [], invalid: [], default_valid: true, direction: "Below", paired_commands: [], num_params: 0 } as Command
 
 const beginShape = { name: "beginShape", valid: [], invalid: ["vertex", "beginShape"], default_valid: true, direction: "Below", paired_commands: ["vertex", "endShape"], num_params: 0 } as Command // since it's only a hoverCommand
 const vertex = { name: "vertex", valid: ["beginShape", "vertex"], invalid: [], default_valid: false, direction: "Below", num_params: 2 } as Command
@@ -18,15 +21,16 @@ const endShape = { name: "endShape", valid: ["vertex"], invalid: [], default_val
 
 const erase = { name: "erase", valid: [], invalid: ["vertex", "erase"], default_valid: true, direction: "Below", paired_commands: ["circle", "noErase"], num_params: 0 } as Command // since it's only a hoverCommand
 const noErase = { name: "noErase", valid: ["erase"], invalid: [], default_valid: false, direction: "Below", num_params: 0 } as Command // since it's only a hoverCommand
-
+const scale = { name: "scale", valid: ["circle", "arc", "ellipse", "line", "quad", "square", "triangle", "rect", ""], invalid: [""], default_valid: false, direction: "Above", num_params: 2 } as Command
+const rotate = { name: "rotate", valid: ["circle", "arc", "ellipse", "line", "quad", "square", "triangle", "rect", ""], invalid: [""], default_valid: false, direction: "Above", num_params: 2 } as Command
 const translate = { name: "translate", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Above", num_params: 2 } as Command
 const push = { name: "push", valid: ["circle", "ellipse", "arc", "line", "quad", "rect", "triangle"], invalid: [], default_valid: false, direction: "Below", paired_commands: ["translate", "pop"], num_params: 0 } as Command
 const pop = { name: "pop", valid: ["applyMatrix"], invalid: [], default_valid: false, direction: "Below", num_params: 0 } as Command
 
-const default_command = { name: "default", valid: [], invalid: [], default_valid: false, direction: "Below", num_params: 0} as Command
+const default_command = { name: "default", valid: [], invalid: [], default_valid: false, direction: "Below", num_params: 0 } as Command
 // used as a stand in for cursorCommand where the clicked command is not defined here
 
-const commands = [default_command, ellipse, circle, fill, noFill, translate, push, pop, line, quad, triangle, erase, noErase];
+const commands = [default_command, scale, rotate, stroke, noStroke, ellipse, fill, noFill, translate, line, quad, triangle, erase, noErase, scale,];
 const command_names = commands.map(command => command.name)
 const params = ['frameCount', 'mouseX', 'mouseY'];
 const operators = ["*", "+"] as ("*" | "+" | "-" | "/" | "%" | "**" | "&" | "|" | ">>" | ">>>" | "<<" | "^" | "==" | "===" | "!=" | "!==" | "in" | "instanceof" | ">" | "<" | ">=" | "<=" | "|>")[]

@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 import SketchRow from './components/SketchRow';
 import { Loc, perturb, samplePrograms } from './utils/perturb';
 // import { Console } from './components/Console';
-
+import { newInsertion } from './utils/perturb'
 
 export interface StateObject {
   sketchCode: string;
@@ -106,11 +106,33 @@ function draw() {
     let j = counter - cumulativeCount;
     return { i, j };
   }
+
+  //returns negative if a < b, pos if a > b, and 0 otherwise
+  // fixes a setorder for some rows, for the others returns alphabetical
+  function sortSketchRows(a: newInsertion, b: newInsertion): number {
+    const setOrder = ["Special", "fill", "translate"]
+    const setA = setOrder.indexOf(a.index)
+    const setB = setOrder.indexOf(b.index)
+    if (setA > -1 && setB > -1) {
+      return setA - setB
+    }
+    if (setA > -1 && setB === -1) {
+      return -1
+    }
+    if (setA === -1 && setB > -1) {
+      return 1
+    }
+
+    return (a.index < b.index ? -1 : 1)
+  }
   function updateCodeState(curr_pos: Loc) {
-    const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 10).sort((a, b) => a.index > b.index || a.index == 'Special' ? -1 : (a.index < b.index || b.index == 'Special' ? 1: 0))
+    const newPrograms = samplePrograms(perturb(defaultSketchCode, curr_pos), 50).sort(sortSketchRows)
+
+    // .sort((a, b) => a.index > b.index || a.index === 'Special' ? -1 : (a.index < b.index || b.index === 'Special' ? 1 : 0))
     console.log(newPrograms)
     const programsWithTitles: { [key: string]: number } = {}
     newPrograms.forEach((insertion) => {
+      // let index = 
       if (insertion.index in programsWithTitles) {
         programsWithTitles[insertion.index]++
       } else {
@@ -183,16 +205,16 @@ function draw() {
                 return (
                   <div className='scrollable-main-sketch'>
                     <Sketch
-                    stateArray={stateArray}
-                    state={state}
-                    code={state.sketchCode}
-                    updateState={updateStateProperty}
-                    setNumSketches={setNumSketches}
-                    setLastClicked={setLastClicked}
-                    lastClicked={lastClicked}
-                    key={crypto.randomUUID()} />
+                      stateArray={stateArray}
+                      state={state}
+                      code={state.sketchCode}
+                      updateState={updateStateProperty}
+                      setNumSketches={setNumSketches}
+                      setLastClicked={setLastClicked}
+                      lastClicked={lastClicked}
+                      key={crypto.randomUUID()} />
                   </div>
-                  )
+                )
               }
             })
           }
@@ -207,16 +229,16 @@ function draw() {
             {
               // where num is the number of sketches per row and index is the ith row
               numSketches.map((num, index) => (
-                  <SketchRow
-                    updateState={updateStateProperty}
-                    stateArray={stateArray}
-                    numSketches={numSketches}
-                    setNumSketches={setNumSketches}
-                    index={index}
-                    setLastClicked={setLastClicked}
-                    lastClicked={lastClicked}
-                    key={index}
-                  />
+                <SketchRow
+                  updateState={updateStateProperty}
+                  stateArray={stateArray}
+                  numSketches={numSketches}
+                  setNumSketches={setNumSketches}
+                  index={index}
+                  setLastClicked={setLastClicked}
+                  lastClicked={lastClicked}
+                  key={index}
+                />
               ))
             }
           </div>
