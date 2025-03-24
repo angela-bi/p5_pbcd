@@ -23,7 +23,7 @@ const SPECIAL_ROWS: { [k: string]: string } = { "Special": "Modify parameters" }
 
 export const SketchRow: React.FC<SketchRowProps> = ({ updateState, stateArray, index, numSketches, setNumSketches, setLastClicked, lastClicked }) => {
   // get sketches for that row to render
-  const [limit, setLimit] = useState<number>(4);
+  const [limit, setLimit] = useState<number>(3);
 
   const start = numSketches.slice(0, index).reduce((sum, val) => sum + val, 0) + 1
   const end = start + Math.min(limit, numSketches[index])

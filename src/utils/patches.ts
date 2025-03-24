@@ -102,7 +102,7 @@ function sinusoids() {
 
 
 function binaryExpressions(literals: (t.Identifier | t.NumericLiteral | t.Expression)[]) {
-    const expressions: ("*" | "+" | "-" | "/" | "%" | "**")[] = ["*", "+", "-", "/", "%", "**"]
+    const expressions: ("*" | "+" | "-" | "/" | "%")[] = ["*", "+", "-", "/", "%"]
     const patches = expressions.map((expr) => {
         const expressionPatch = (path: NodePath, literal?: t.Identifier | t.NumericLiteral | t.Expression): [NodePath | undefined, string?] => {
             if (path.isExpression() || path.isLiteral()) {

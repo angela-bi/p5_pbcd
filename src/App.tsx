@@ -152,7 +152,7 @@ function draw() {
 
     const stateAdd = newPrograms.map((insertion) => {
       return {
-        sketchCode: insertion.program,
+        sketchCode: insertion.program as string,
         addedFunction: insertion.title,
         displayName: insertion.index
       }

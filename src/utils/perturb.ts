@@ -7,7 +7,7 @@ import { checkCommands, checkValidity, Command, getCommand, InsertDirection } fr
 import { commands, params, operators } from './commands'
 import { generateMutations, literalInsertions } from "./patches";
 import { current } from "@reduxjs/toolkit";
-
+import { ParseResult } from "@babel/parser";
 export type Loc = {
   start: number,
   end: number
@@ -102,7 +102,7 @@ function makeCallExpression(command: Command) {
 //Given a Call Expression Path, an ast, and a set of possible substitutions, replaces literals with the substitutions. 
 //Returns a list of programs
 //"All" premutates all the arguments or just some 
-function perturbArguments(functionPath: NodePath<t.CallExpression>, ast: parser.ParseResult<t.File>, values: (t.NumericLiteral | t.Identifier | t.Node)[], num_programs: number, all: Boolean = true,): newInsertion[] {
+function perturbArguments(functionPath: (NodePath<t.CallExpression>), ast: parser.ParseResult<t.File>, values: (t.NumericLiteral | t.Identifier | t.Node)[], num_programs: number, all: Boolean = true,): newInsertion[] {
   const newPrograms: newInsertion[] = []
   if (functionPath && functionPath.node && functionPath.node.arguments) {
     for (var i = 0; i < num_programs; i++) {
@@ -146,11 +146,13 @@ function perturbLiteral(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.Fi
     }
   }
   let [newProgram, patchTitle] = applyPatch(nodePath, ast, patch)
+  newProgram = newProgram as unknown as ParseResult
   return [newProgram, patchTitle]
 }
 
 //traverse the expression, applying patches at every applicable level, returns a randomized order
-function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResult<t.File>): newInsertion[] {
+//partial: just return the expression, not the entire AST. 
+function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResult<t.File>, partial?: boolean): newInsertion[] {
   let newPrograms: newInsertion[] = []
   //console.log("toplevelpath", topLevelPath)
   const mutations = generateMutations(topLevelPath)
@@ -164,11 +166,20 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
   const insertionLiterals = literalInsertions(topLevelPath, false, decimal)
   console.log("mutations", mutations)
   mutations.forEach((mutationPatch) => {
-    // const SAMPLE_NUM
     insertionLiterals.forEach((insertionLiteral) => {
-      let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch, insertionLiteral)
+      let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch, insertionLiteral, partial)
+      newProgram = newProgram as unknown as ParseResult
+      // if (newProgram !== undefined ) {
+      //   newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
+      // }
       if (newProgram !== undefined && insertionLiteral.type !== "NumericLiteral") {
-        newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
+        if (partial) {
+          newProgram = newProgram as unknown as NodePath<t.Node>
+          newPrograms.push({ index: "Special", title: patchTitle ?? "", program: newProgram })
+        } else {
+          newProgram = newProgram as unknown as ParseResult<t.File>
+          newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
+        }
       }
     })
   })
@@ -183,9 +194,16 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
       } else {
         mutations.forEach((mutationPatch) => {
           insertionLiterals.forEach((insertionLiteral) => {
-            let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch, insertionLiteral)
+            let [newProgram, patchTitle] = applyPatch(topLevelPath, ast, mutationPatch, insertionLiteral, partial)
+
             if (newProgram !== undefined) {
-              newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
+              if (partial) {
+                newProgram = newProgram as unknown as NodePath<t.Node>
+                newPrograms.push({ index: "Special", title: patchTitle ?? "", program: newProgram })
+              } else {
+                newProgram = newProgram as unknown as ParseResult<t.File>
+                newPrograms.push({ index: "Special", title: patchTitle ?? "", program: generate(newProgram).code })
+              }
             }
           })
         })
@@ -194,9 +212,20 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
   })
   console.log("newProgramsOut", newPrograms)
   const uniqueArray = newPrograms.filter((value, index) => {
-    const _value = JSON.stringify(value);
+
+    let program = value.program
+    if (typeof (value.program) !== 'string') {
+      program = program as unknown as NodePath<t.Node>
+      program = generate(program.node).code
+    }
+    const _value = JSON.stringify({ ...value, program: program });
     return index === newPrograms.findIndex(obj => {
-      return JSON.stringify(obj) === _value;
+      let program = obj.program
+      if (typeof (obj.program) !== 'string') {
+        program = program as unknown as NodePath<t.Node>
+        program = generate(program.node).code
+      }
+      return JSON.stringify({ ...obj, program: program }) === _value;
     });
   });
   const shuffled = uniqueArray
@@ -209,7 +238,7 @@ function mutateExpression(topLevelPath: NodePath<t.Node>, ast: parser.ParseResul
 }
 
 //Given a patch, make a new AST, apply the patch, and return the ast
-function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>, patch: (path: NodePath, literal?: t.Identifier | t.NumericLiteral | t.Expression) => [NodePath | undefined, string?], literal?: t.Identifier | t.NumericLiteral | t.Expression): [parser.ParseResult<t.File> | undefined, string?] {
+function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>, patch: (path: NodePath, literal?: t.Identifier | t.NumericLiteral | t.Expression) => [NodePath | undefined, string?], literal?: t.Identifier | t.NumericLiteral | t.Expression, partial?: boolean): [parser.ParseResult<t.File> | undefined | NodePath<t.Node>, string?] {
   let clonedAST = t.cloneNode(ast, true, false)
   const dupPath = findNodeByID(clonedAST, nodePath.node)!
   let [replacementNode, title] = literal ? patch(dupPath, literal) : patch(dupPath)
@@ -223,7 +252,11 @@ function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>,
     })
 
     dupPath.replaceWith(replacementNode)
-    return [clonedAST, title ?? generate(dupPath.node).code]
+    if (partial) {
+      return [dupPath, title ?? generate(dupPath.node).code]
+    } else {
+      return [clonedAST, title ?? generate(dupPath.node).code]
+    }
   }
 
   return [undefined, undefined]
@@ -232,7 +265,7 @@ function applyPatch(nodePath: NodePath<t.Node>, ast: parser.ParseResult<t.File>,
 export interface newInsertion {
   index: string,
   title: string,
-  program: string
+  program: string | NodePath<t.Node>
 }
 
 //Given a Call Expression Path, returns a list of all the valid programs with new commands inserted
@@ -388,25 +421,46 @@ export function perturb(
         // console.log("NewCommands", newCommands)
         newPrograms.push(...newCommands)
 
-
-        let decimal = false
-        if (path.node.callee.type === "Identifier") {
-          decimal = ["scale", "rotate"].indexOf(path.node.callee.name) > -1
-        }
-        path.node.arguments.forEach((arg) => {
+        const argumentReplacements: { [key: number]: newInsertion[] } = {}
+        path.node.arguments.forEach((arg, index) => {
           const argumentPath = findNodeByID(ast, arg)
-          if (argumentPath && isValidMutationExpression(argumentPath)) {
-            const newExpressions = mutateExpression(argumentPath, ast)
-            newPrograms.push(...newExpressions)
+          if (argumentPath) {
+            const newExpressions = mutateExpression(argumentPath, ast, true)
+
+            if (index in argumentReplacements) {
+              argumentReplacements[index].push(...newExpressions)
+            } else {
+              argumentReplacements[index] = [...newExpressions]
+            }
           }
         })
-        // perturbArguments(path, ast, literalInsertions(path, true,decimal), 100).forEach(
-        //   (program) => {
-        //     newPrograms.push({ ...program, index: insertCommand.name })
-        //   })
+        for (var i = 0; i < 100; i++) {
+          let newAST = t.cloneNode(ast);
+          let callPath = findNodeByID(newAST, path.node)
+          if (callPath && callPath.node.type === "CallExpression") {
+            callPath.node.arguments.forEach((arg, index) => {
+              const argPath = findNodeByID(newAST, arg)
+              const newArgs = argumentReplacements[index]
+              const newArg = newArgs[Math.floor(Math.random() * newArgs.length)]
+              if (newArg) {
+                // console.log("NEWARG", newArg)
+                argPath?.replaceWith((newArg.program as unknown as NodePath<t.Node>))
+              }
+            })
+            const title = "(" + callPath.node.arguments.map(arg => generate(arg).code).join(",") + ")"
+            newPrograms.push({ index: "Special", title: title, program: generate(newAST).code })
+            // console.log("ADDED ARGS",)
+          }
+        }
+        // console.log("argumentOptions", argumentReplacements)
       }
-
     },
+
+    // perturbArguments(path, ast, literalInsertions(path, true,decimal), 100).forEach(
+    //   (program) => {
+    //     newPrograms.push({ ...program, index: insertCommand.name })
+    //   })
+
     //
     enter(path) {
       if (path.isExpression()) {
