@@ -16,5 +16,5 @@ npm install
 ```
 3. Compile + launch
 ```
-npm start
+npm run dev
 ```
