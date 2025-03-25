@@ -1,0 +1,366 @@
+/* Main */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+    --bg-color: #ffffff;
+    --fg-color: #333333;
+    --fade-color: rgb(166, 166, 166);
+    --accent-bg: #ed225d;
+    --accent-bg2: rgba(237, 34, 93, 0.2);
+    --accent-bg3: #4c061a;
+    --accent-bg4: rgba(237, 34, 93, 0.5);
+    --accent-fg: #ffffff;
+
+    --left-width: 800px;
+    --fadeout-distance: 40px;
+
+    --cursor-highlight: red;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Montserrat", sans-serif;
+    margin: 0;
+
+    /* Courtesy of https://css-pattern.com/ */
+
+    --s: 192px; /* control the size*/
+    --c1: #ffffff;
+    --c2: var(--accent-bg2);
+
+    --_g:
+        var(--c1) 0%  5% ,var(--c2) 6%  15%,var(--c1) 16% 25%,var(--c2) 26% 35%,var(--c1) 36% 45%,
+        var(--c2) 46% 55%,var(--c1) 56% 65%,var(--c2) 66% 75%,var(--c1) 76% 85%,var(--c2) 86% 95%,
+        #0000 96%;
+
+    background:
+        radial-gradient(50% 50% at 100% 0,var(--_g)),
+        radial-gradient(50% 50% at 0 100%,var(--_g)),
+        radial-gradient(50% 50%,var(--_g)),
+        radial-gradient(50% 50%,var(--_g)) calc(var(--s)/2) calc(var(--s)/2)
+        var(--c1);
+
+    background-size: var(--s) var(--s);
+    background-attachment: fixed;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    z-index: -1;
+    backdrop-filter: blur(5px);
+}
+
+/* App */
+
+.App {
+    padding: 20px 0 0 20px;
+}
+
+.App > div {
+    /* background-color: rgb(245, 245, 245); */
+    background-color: #FFFFFF;
+    /* border: 1.5px solid var(--accent-bg3); */
+    border: 1.5px solid #DDDDDD;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+#left {
+    width: var(--left-width);
+    position: fixed;
+    max-height: calc(100% - 40px);
+    overflow: scroll;
+}
+
+#left #output-pane .scrollable-main-sketch {
+    overflow: scroll;
+}
+
+#right {
+    float: left;
+    margin-left: calc(var(--left-width) + 20px);
+    width: calc(100% - var(--left-width) - 40px);
+    margin-bottom: 20px;
+}
+
+/* Toolbar */
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.toolbar h2 {
+    height: 30px;
+    line-height: 30px;
+    font-size: 1.4em;
+    font-weight: 650;
+}
+
+.toolbar h2 span {
+    font-weight: normal;
+}
+
+.toolbar .run-button {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    font-size: 1em;
+    background-color: var(--accent-bg);
+    color: var(--accent-fg);
+    cursor: pointer;
+}
+
+/* Editor */
+
+#editor-pane h2::after {
+    content: "(with un-run changes)";
+    font-weight: normal;
+    color: white;
+    transition: color ease 0.3s;
+    font-size: 0.8em;
+    margin-left: 10px;
+}
+
+.App[data-dirty="true"] #editor-pane h2::after {
+    color: var(--accent-bg);
+}
+
+.cm-editor {
+    margin-bottom: 20px;
+    border: 1.5px solid #DDDDDD;
+    font-size: 1.2em;
+    position: relative;
+}
+
+.cm-focused {
+    outline: none !important;
+}
+
+.cm-activeLineGutter, .cm-activeLine {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.cm-editor::after {
+    content: "";
+    position: absolute;
+    top: -1.5px;
+    right: -1.5px;
+    bottom: -1.5px;
+    left: -1.5px;
+    border: 0px solid var(--accent-bg);
+    transition: border-width ease 0.3s;
+    pointer-events: none;
+}
+
+.App[data-dirty="true"] .cm-editor::after {
+    border-width: 4px;
+}
+
+/* Cursor */
+
+.cursor-hovered {
+    background-color: var(--accent-bg2);
+    color: #000;
+    font-weight: 500;
+}
+
+.cursor-hovered * {
+    color: #000;
+}
+
+.cursor-selected {
+    background-color: var(--accent-bg4);
+    color: #000;
+    font-weight: bold;
+}
+
+.cursor-selected * {
+    color: #000;
+}
+
+/* Output pane */
+
+#output-pane .sketch {
+    display: inline-flex;
+}
+
+/* Possibilities pane */
+
+#possibilities-pane[data-has-sketches="false"] .toolbar {
+    margin: 0;
+}
+
+#possibilities-pane[data-has-sketches="false"] .toolbar h2 {
+    height: auto;
+    line-height: auto;
+}
+
+#possibilities-pane[data-has-sketches="false"] h2 span {
+    display: none;
+}
+
+/* Sketch rows */
+
+#sketch-rows {
+    display: flex;
+    flex-direction: column;
+}
+
+.sketch-row {
+    border-top: 1px dashed var(--fade-color);
+    padding-top: 10px;
+    position: relative;
+}
+
+.sketch-row::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: var(--fadeout-distance);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1));
+}
+
+.sketch-row > div {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: 1fr;
+    grid-auto-columns: max-content;
+    overflow-x: scroll;
+}
+
+.sketch-row[data-special="false"] h3::before {
+    content: "Add ";
+    font-weight: normal;
+}
+
+.sketch-row[data-special="false"] h3::after {
+    content: " to code";
+    font-weight: normal;
+}
+
+.sketch-row h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.sketch-row[data-special="true"] {
+    order: -1;
+}
+
+.sketch-row[data-special="true"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -20px;
+    bottom: 0;
+    width: 5px;
+    /* background-color: var(--accent-bg); */
+}
+
+.sketch-row[data-special="true"] > div {
+    grid-template-rows: 1fr 1fr;
+}
+
+.sketch-row[data-special="true"] h3 {
+    background-color: var(--accent-bg2);
+    font-weight: 650;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.sketch-row .show-more-button {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-size: 1.5rem;
+    font-weight: 900;
+    background-color: var(--accent-bg);
+    color: var(--accent-fg);
+    cursor: pointer;
+}
+
+.sketch-row .show-more-button span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+}
+
+/* Sketches */
+
+.sketch {
+    border: 1px solid var(--fade-color);
+    border-radius: 5px;
+    background-color: #FFFFFF;
+}
+
+.sketch .iframe-wrapper {
+    transform-origin: 0 0;
+    display: inline-block;
+}
+
+.sketch iframe {
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.sketch-row .sketch iframe {
+    border-radius: 5px 5px 0 0;
+    transform: scale(0.5, 0.5);
+    transform-origin: 0 0;
+    /* NOTE: transform property gets set in JavaScript! */
+}
+
+.sketch-row .sketch {
+    margin: 0 10px 10px 0px;
+    cursor: pointer !important;
+    transition: all 0.3s;
+    box-sizing: content-box;
+}
+
+.sketch-row .sketch:hover {
+    border: 3px solid var(--accent-bg);
+    transition: all 0.3s;
+    box-shadow: 0 0 5px var(--fade-color);
+}
+
+.sketch .added-function {
+    text-align: left;
+    width: 100%;
+    font-family: monospace;
+    font-size: 0.9em;
+    padding: 5px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.sketch-row .sketch:last-child {
+    margin-right: var(--fadeout-distance);
+}
+

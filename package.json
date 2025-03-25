@@ -1,8 +1,13 @@
 {
-  "name": "web_editor",
+  "name": "nextjs",
   "version": "0.1.0",
-  "homepage": "https://angela-bi.github.io/p5_pbcd/",
   "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",
     "@codemirror/commands": "^6.8.0",
@@ -14,66 +19,40 @@
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
     "@mui/icons-material": "^6.1.1",
-    "@reduxjs/toolkit": "^2.6.1",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
+    "@tailwindcss/postcss": "^4",
     "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.108",
-    "@types/react": "^18.3.8",
-    "@types/react-dom": "^18.3.0",
-    "@types/react-router": "^5.1.20",
-    "@types/react-router-dom": "^5.3.3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@uiw/codemirror-extensions-classname": "^4.23.10",
     "@uiw/codemirror-extensions-langs": "^4.23.10",
     "@uiw/react-codemirror": "^4.23.3",
-    "console-feed": "^3.8.0",
+    "babel-preset-es2017": "^6.24.1",
+    "core-js": "^3.41.0",
     "js-beautify": "^1.15.4",
+    "next": "15.2.3",
     "p5": "^1.11.0",
     "query-string": "^9.1.1",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-redux": "^9.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^6.26.2",
-    "react-scripts": "5.0.1",
+    "tailwindcss": "^4",
     "types": "^0.1.1",
-    "typescript": "^4.9.5",
+    "typescript": "^5",
+    "uuid": "^11.1.0",
+    "uuidv4": "^6.2.13",
     "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   },
   "devDependencies": {
     "@babel/cli": "^7.25.9",
-    "@babel/core": "^7.25.9",
-    "@babel/preset-env": "^7.25.9",
+    "@babel/core": "^7.26.10",
+    "@babel/preset-env": "^7.26.9",
+    "@types/babel__generator": "^7.6.8",
+    "@types/babel__traverse": "^7.20.6",
     "@types/js-beautify": "^1.14.3",
     "@types/p5": "^1.7.6",
-    "gh-pages": "^6.3.0",
+    "babel-preset-env": "^1.7.0",
     "html-webpack-plugin": "^5.6.3",
     "prettier": "3.3.3"
   }
